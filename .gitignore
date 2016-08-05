@@ -3,7 +3,7 @@
 #################
 
 *.pydevproject
-.project
+#.project
 .metadata
 bin/
 tmp/
@@ -222,6 +222,6 @@ pip-log.txt
 *.zip
 
 #Flash Project files
-.project
+#.project
 .flexProperties
 .actionScriptProperties
