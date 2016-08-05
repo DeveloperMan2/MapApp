@@ -222,6 +222,6 @@ pip-log.txt
 *.zip
 
 #Flash Project files
-#.project
-#.flexProperties
-#.actionScriptProperties
+.project
+.flexProperties
+.actionScriptProperties
