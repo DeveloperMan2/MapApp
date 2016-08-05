@@ -1,5 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
-		xmlns:s="library://ns.adobe.com/flex/spark" title="HomeView">
-	
+		xmlns:s="library://ns.adobe.com/flex/spark" 
+		title="HomeView"    actionBarVisible="false"
+		creationComplete="creationCompleteHandler(event)" xmlns:supermap="http://www.supermap.com/mobile/2010">
+	<fx:Script>
+		<![CDATA[
+			import com.mapping.MBTilesLayerEx;
+			import com.mapping.TiledTDTLayer;
+			import com.supermap.web.core.Point2D;
+			import com.supermap.web.core.Rectangle2D;
+			import com.supermap.web.mapping.OfflineStorage;
+			import com.util.Coordinate;
+			
+			import mx.events.FlexEvent;
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				var mbtilesLayer:MBTilesLayerEx;
+				mbtilesLayer = new MBTilesLayerEx();
+				mbtilesLayer.mbtilesPath = "datas/mappng15.mbtiles";
+				mbtilesLayer.bounds =  new Rectangle2D(Coordinate.lon2Mercator(116.091343), Coordinate.lat2Mercator(29.738883), Coordinate.lon2Mercator(116.209089),Coordinate.lat2Mercator(29.760974));
+				mbtilesLayer.origin = new Point2D(-20037508.3392, 20037508.3392);
+				var resolutions:Array = [];
+				for(var i:int=-1 ; i<=15;i++){
+					resolutions.push(156543.0339/2/Math.pow(2,i));
+				}
+				map.resolutions = resolutions;
+				
+				var superOfflineStorage:OfflineStorage = new OfflineStorage();
+				superOfflineStorage.userRootDirectory = "tdt";
+				
+				var tdtLayer:TiledTDTLayer = new TiledTDTLayer();
+				tdtLayer.projection = "10010";
+				tdtLayer.offlineStorage = superOfflineStorage;
+				map.addLayer(tdtLayer);
+				
+				var superLabelOfflineStorage:OfflineStorage = new OfflineStorage();
+				superLabelOfflineStorage.userRootDirectory = "tdtLabel";
+				var tdtLabelLayer:TiledTDTLayer = new TiledTDTLayer();
+				tdtLabelLayer.projection = "10010";
+				tdtLabelLayer.offlineStorage = superLabelOfflineStorage;
+				tdtLabelLayer.isLabel = true;
+				map.addLayer(tdtLabelLayer);
+				
+				map.addLayer(mbtilesLayer);
+				map.viewBounds =mbtilesLayer.bounds;
+			}
+		]]>
+	</fx:Script>
+	<supermap:Map id="map" width="100%" height="100%" >
+	</supermap:Map>
 </s:View>
