@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnablePopUpContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						   xmlns:s="library://ns.adobe.com/flex/spark" 
+						   backgroundAlpha="0.3" backgroundColor="0x000000"  
+						   xmlns:iconbutton="sm.mobile.jx.component.iconbutton.*"
+						   cachePolicy="on" 
+						   click="this.close()"
+						   add="addHandler(event)"
+						   resize="onResize(event)"
+						   creationComplete="initPopup(event)"						   
+						   initialize="onInit(event)"
+						   close="onClose(event)"
+						   xmlns:fxg="assets.fxg.*">  
+	
+	<fx:Script>
+		<![CDATA[
+			import com.supermap.web.core.Rectangle2D;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			
+			import spark.events.IndexChangeEvent;
+			import spark.events.PopUpEvent;
+			
+			import sm.mobile.jx.core.util.DataBaseUtil;
+			import sm.mobile.jx.core.util.LocationUtil;
+			import sm.mobile.jx.core.util.features.FeatureUtilManager;
+			import sm.mobile.jx.vo.MainVO;
+			import sm.mobile.jx.vo.QueryVO;
+			[Bindable]
+			private var dm:DataManager = DataManager.getInstance();
+			
+			private var fm:FeatureUtilManager = FeatureUtilManager.getInstance();
+			[Bindable]
+			private var counties:ArrayCollection = null;
+			[Bindable]
+			private var cities:ArrayCollection = null;
+			[Bindable]
+			private var cityIdx:int = 0;
+			[Bindable]
+			private var countyIdx:int = 0;
+			
+			[Bindable]
+			private var dbUtil:DataBaseUtil = null;
+			[Bindable]
+			private var mapBound:Rectangle2D = null;
+
+			protected function addHandler(event:FlexEvent):void
+			{
+				initDbUtil();
+				initlocationUtil();		
+				if(city != null && county != null)
+				{
+					city.selectedIndex = cityIdx;
+					county.selectedIndex = countyIdx;
+				}
+			}
+			
+			protected function initlocationUtil():void
+			{				
+				if(fm.locationUtil == null)
+				{
+					fm.locationUtil = new LocationUtil();	
+					fm.locationUtil.cities = dbUtil.getSubRegionBounds(LocationUtil.ProvinceID);
+					fm.locationUtil.cityIndex = 0;
+					updateCounties();
+				}				
+				fm.locationUtil.init();
+			
+				cities = fm.locationUtil.cities;
+				counties = fm.locationUtil.counties;
+				cityIdx = fm.locationUtil.cityIndex;
+				countyIdx = fm.locationUtil.countyIndex;
+			}
+			
+			protected function updateCounties():void
+			{
+				var city:Object = fm.locationUtil.city();
+				if(city != null)
+				{
+					var id:int = city.id;
+					fm.locationUtil.counties = dbUtil.getSubRegionBounds(id);
+					fm.locationUtil.countyIndex = 0;
+					counties = fm.locationUtil.counties;					
+				}				
+			}
+			
+			protected function initPopup(event:FlexEvent):void
+			{				
+				
+			}
+			protected function layerControlGroup_clickHandler(event:MouseEvent):void
+			{
+				// 阻止弹出窗口关闭
+				event.stopImmediatePropagation();
+			}
+			protected function initDbUtil():void
+			{
+				if(dbUtil == null)
+				{
+					dbUtil = new DataBaseUtil(MainVO.DataCacheRootPath + QueryVO.DbName);
+					dbUtil.open(SQLMode.READ);
+				}		
+			}
+			public function closeDbUtil():void
+			{
+				if(dbUtil != null)
+				{
+					dbUtil.close();
+					dbUtil = null;
+				}		
+			}	
+			
+			protected function onResize(event:ResizeEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(this.visible)
+				{
+					this.width = systemManager.screen.width;  
+					this.height = systemManager.screen.height;
+				}
+			}
+			
+			protected function city_changeHandler(event:IndexChangeEvent):void
+			{
+				// TODO Auto-generated method stub
+				var idx:int = event.newIndex;
+				if(idx != event.oldIndex && idx < cities.length)
+				{
+					fm.locationUtil.cityIndex = idx;
+					updateCounties();
+					var ct:Object = cities[idx];
+					if(ct != null)
+					{
+						mapBound = new Rectangle2D(ct.left,ct.bottom,ct.right,ct.top);
+						dm.map.viewBounds = mapBound.clone();						
+					}					
+				}				
+			}
+			protected function county_changeHandler(event:IndexChangeEvent):void
+			{
+				// TODO Auto-generated method stub
+				var idx:int = event.newIndex;
+				if(idx != event.oldIndex && idx < counties.length)
+				{
+					var ct:Object = counties[idx];
+					if(ct != null)
+					{
+						mapBound = new Rectangle2D(ct.left,ct.bottom,ct.right,ct.top);
+						dm.map.viewBounds = mapBound.clone();						
+					}									
+				}				
+			}
+			
+			protected function onClose(event:PopUpEvent):void
+			{
+				// TODO Auto-generated method stub
+				closeDbUtil();
+			}
+			
+			protected function onInit(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				city.selectedIndex = fm.locationUtil.cityIndex;
+				county.selectedIndex = fm.locationUtil.countyIndex;
+			}
+			
+		]]>
+	</fx:Script>	
+	
+	<s:VGroup gap="{dm.appFontSize}" top="{dm.appFontSize+90}" bottom="{dm.appFontSize}" right="{dm.appFontSize}" horizontalAlign="left">
+		<s:Group id="layerControlGroup" left="0" width="{400 * dm.multiResolution}" height="{320 * dm.multiResolution}"
+				 click="layerControlGroup_clickHandler(event)">
+			<s:Rect width="100%" height="100%" right="0" id="backRect"			topLeftRadiusX="6" topLeftRadiusY="6"
+					bottomLeftRadiusX="6" bottomLeftRadiusY="6" bottomRightRadiusX="6" bottomRightRadiusY="6">
+				<s:fill>
+					<s:SolidColor color="#FFFFFF"/>
+				</s:fill>
+				<s:filters>
+					<s:DropShadowFilter distance="{dm.multiResolution*5}" blurX="2" blurY="2" color="#CCCCCC" alpha="0.6"/> 
+				</s:filters>
+			</s:Rect>
+			<s:VGroup width="100%" height="100%"  horizontalAlign="center" verticalAlign="middle" right="0" gap="{5*dm.multiResolution}"
+					  paddingBottom="6" paddingTop="6" paddingLeft="6" paddingRight="6">
+				<s:HGroup width="100%" horizontalAlign="center" verticalAlign="middle" paddingLeft="{dm.appFontSize}" paddingRight="{dm.appFontSize}">
+					<s:Label text="请选择地理位置" fontSize="{dm.appFontSize}" color="#000000" fontWeight="bold" horizontalCenter="0"/>
+					<s:Spacer width="100%"/>
+					<s:Button icon="{dm.iconAssembly.closeIcon}" right="0" 
+							  styleName="closeButton" click="this.close()"/>				
+				</s:HGroup>						
+				<s:SpinnerListContainer width="100%" height="95%" fontSize="{dm.appFontSize}" >
+					<s:SpinnerList id="city" color="#000000"
+								   dataProvider="{cities}" labelField="name" width="55%" textAlign="center" change="city_changeHandler(event)" />					
+					<s:SpinnerList id="county" color="#000000"
+								   dataProvider="{counties}" labelField="name"  width="40%" textAlign="center" change="county_changeHandler(event)" />
+					<s:filters>
+						<s:DropShadowFilter angle="45" blurX="10" blurY="10" distance="8" color="#CCCCCC" alpha="0.8"/>
+					</s:filters>
+				</s:SpinnerListContainer>							
+			</s:VGroup>
+		</s:Group>		
+	</s:VGroup>
+</s:SkinnablePopUpContainer>  

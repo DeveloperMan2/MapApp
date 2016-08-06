@@ -1,7 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:ViewNavigatorApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
 							xmlns:s="library://ns.adobe.com/flex/spark" 
-							firstView="views.MapAppHomeView" 
-							applicationDPI="320">
+							firstView="views.MapAppHomeView"
+							splashScreenImage="com.component.initimage.InitImage"
+							splashScreenScaleMode="stretch"
+							resizeForSoftKeyboard="true"
+							creationComplete="initMapAppHandler(event)">
+	<fx:Style source="assets/common/css/main.css"/>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			[Bindable]
+			private var dm:DataManager = DataManager.getInstance();
+			
+			protected function initMapAppHandler(event:FlexEvent):void
+			{
+				//初始化系统运行参数
+				dm.initAppParam(this.runtimeDPI);
+				
+				//添加图标集装箱
+				dm.loadIconAssembly(this.runtimeDPI);
+				
+				//初始化系统目录
+				var initDirectory:SystemInit = new SystemInit();
+				initDirectory.initSystemDirectory(true);
+			}
+			
+		]]>
+	</fx:Script>
+							
 	
 </s:ViewNavigatorApplication>

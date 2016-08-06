@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SplashScreenImage xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark">
+	<s:SplashScreenImageSource 
+		dpi="160"
+		source="@Embed('assets/dpi320/init/1600_2560.jpg')" 
+		aspectRatio="portrait"/> 
+	
+	<s:SplashScreenImageSource 
+		dpi="160"
+		source="@Embed('assets/dpi320/init/2560_1600.jpg')" 
+		aspectRatio="landscape"/> 
+	
+	<s:SplashScreenImageSource 
+		dpi="240"
+		source="@Embed('assets/dpi320/init/1600_2560.jpg')" 
+		aspectRatio="portrait"/> 
+	
+	<s:SplashScreenImageSource 
+		dpi="240"
+		source="@Embed('assets/dpi320/init/2560_1600.jpg')" 
+		aspectRatio="landscape"/> 
+	
+	<s:SplashScreenImageSource 
+		dpi="320"
+		source="@Embed('assets/dpi320/init/1600_2560.jpg')" 
+		aspectRatio="portrait"/> 
+	
+	<s:SplashScreenImageSource 
+		dpi="320"
+		source="@Embed('assets/dpi320/init/2560_1600.jpg')" 
+		aspectRatio="landscape"/> 
+	
+	<s:SplashScreenImageSource 
+		dpi="480"
+		source="@Embed('assets/dpi320/init/1600_2560.jpg')" 
+		aspectRatio="portrait"/> 
+	
+	<s:SplashScreenImageSource 
+		dpi="480"
+		source="@Embed('assets/dpi320/init/2560_1600.jpg')" 
+		aspectRatio="landscape"/> 
+</s:SplashScreenImage>

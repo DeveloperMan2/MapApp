@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Graphic version="2.0" viewHeight="50" viewWidth="50" ai:appVersion="15.0.0.399" ATE:version="1.0.0" flm:version="1.0.0" d:id="1" d:using="" xmlns="http://ns.adobe.com/fxg/2008" xmlns:ATE="http://ns.adobe.com/ate/2009" xmlns:ai="http://ns.adobe.com/ai/2009" xmlns:d="http://ns.adobe.com/fxg/2008/dt" xmlns:flm="http://ns.adobe.com/flame/2008">
+  <Library/>
+  <Group ai:artboardActive="1" ai:artboardIndex="0" ai:seqID="1" d:layerType="page" d:pageHeight="50" d:pageWidth="50" d:type="layer" d:userLabel="画板 1">
+    <Group ai:objID="4c5de00" ai:seqID="2" d:id="2" d:type="layer" d:userLabel="图层 1">
+      <Rect rotation="315" x="8.6769" y="37.3739" width="39.9988" height="4.99981" ai:objID="16aca580" ai:seqID="3">
+        <fill>
+          <SolidColor/>
+        </fill>
+      </Rect>
+      <Rect rotation="225" x="36.9609" y="40.9092" width="39.9999" height="4.99947" ai:objID="16943100" ai:seqID="4">
+        <fill>
+          <SolidColor/>
+        </fill>
+      </Rect>
+    </Group>
+  </Group>
+</Graphic>

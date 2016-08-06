@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnablePopUpContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						   xmlns:s="library://ns.adobe.com/flex/spark"	
+						   backgroundAlpha="0.1"
+						   add="onAdd(event)"
+						   resize="onResize(event)" 
+						   creationComplete="initHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;		
+			[Bindable]
+			private var text:String = "请稍候";
+			
+			[Bindable]
+			public var showTime:Number = 15000;
+			
+			[Bindable]
+			public var showBusyIcon:Boolean = false;
+			
+			[Bindable]
+			private var dm:DataManager = DataManager.getInstance();
+			
+			/**计时器，指定时间后弹出信息消失*/
+			public var timer:Timer = null;
+			
+			public var parentWnd:UIComponent = null;
+			
+			private var timerHandler:Function = null;
+			protected function initHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub	
+				this.width = systemManager.screen.width;  
+				this.height = systemManager.screen.height;  				
+				onInit();
+			}
+			
+			/**
+			 * 初始化弹出信息框文本，和停留时间
+			 * **/
+			public function initInfo(infoSz:String,_showTime:Number = 1500,_showBusyIcon:Boolean=false,timerFunc:Function = null):void
+			{
+				if(timer != null)
+				{
+					timer.stop();					
+				}
+				timer = new Timer(showTime);
+				timerHandler = timerFunc;				
+				timer.addEventListener(TimerEvent.TIMER,onTimer);
+				timer.start();	
+				
+				text = infoSz;		
+				showTime = _showTime;
+				showBusyIcon = _showBusyIcon;
+				onInit();
+				if(parentWnd != null)
+				{	
+					this.open(parentWnd,true);
+				}
+				else if(systemManager  != null)
+				{
+					this.open(systemManager.stage,true);
+				}	
+			}
+			protected function onResize(event:ResizeEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(this.visible)
+				{
+					this.width = systemManager.screen.width;  
+					this.height = systemManager.screen.height;
+				}
+			}
+			/**计时器响应事件*/
+			private function onTimer(ev:TimerEvent):void
+			{
+				if(Timer != null && timerHandler != null)
+				{
+					timer.removeEventListener(TimerEvent.TIMER,timerHandler);
+					timerHandler = null;
+					timer.stop();
+					timer = null;
+				}
+				if(timerHandler != null)
+				{
+					timerHandler.call();					
+				}
+				this.close();
+			}
+			
+			private function onclick(ev:MouseEvent):void
+			{
+				/**停止当前popUP*/
+				if(Timer != null && timerHandler != null)
+				{
+					timer.removeEventListener(TimerEvent.TIMER,timerHandler);					
+					timer.stop();
+					timer = null;
+				}
+				/**调用外部函数*/
+				if(timerHandler != null)
+				{
+					timerHandler.call();	
+					timerHandler = null;
+				}
+				this.close();
+			}
+			
+			/**
+			 * 初始化界面
+			 * */
+			private function onInit():void
+			{								
+				if(infoText != null && busyIndicator != null && labelBound != null)
+				{
+					busyIndicator.includeInLayout = showBusyIcon;
+					busyIndicator.visible = showBusyIcon;
+					
+					var iconWidth:int = busyIndicator.width;
+					if(!showBusyIcon)
+					{
+						iconWidth = 0;
+					}
+					
+					infoText.maxWidth = Math.min(systemManager.screen.width,systemManager.screen.height) * 0.5;
+					var textSize:TextLineMetrics = infoText.measureText(text);
+					labelBound.bottom = dm.multiResolution * 100;
+					labelBound.width = Math.min(textSize.width,infoText.maxWidth) + 60 * dm.multiResolution + iconWidth;
+					labelBound.height = textSize.height + 30;
+					labelBound.left = 0.5 * (systemManager.screen.width - labelBound.width );  
+				}
+				if(timer != null)
+				{
+					timer.stop();
+				}
+				timer = new Timer(showTime);
+				timer.addEventListener(TimerEvent.TIMER,onTimer);
+				timer.start();
+				
+				this.addEventListener(MouseEvent.CLICK,onclick);				
+			}
+			
+			protected function onAdd(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				onInit();
+			}
+			
+		]]>
+	</fx:Script>
+	<s:Group width="100%" height="100%" >	
+		<s:Rect width="100%" height="100%" right="0" alpha="0.1" id="backRect"
+					topLeftRadiusX="6" topLeftRadiusY="6" 
+					bottomLeftRadiusX="6" bottomLeftRadiusY="6" bottomRightRadiusX="6" bottomRightRadiusY="6">
+				<s:fill>
+					<s:SolidColor color="#CCCCCC"/>
+				</s:fill>
+		</s:Rect>
+		<s:Group id="labelBound" >
+			<s:Rect width="100%" height="100%" right="0" alpha="0.7" radiusX="6" radiusY="6">
+				<s:fill>
+					<s:SolidColor color="#1e1e1e"/>
+				</s:fill>
+			</s:Rect>
+			<s:HGroup width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" 
+					  paddingBottom="6" paddingTop="6" paddingLeft="12" paddingRight="12" >
+				<s:BusyIndicator id="busyIndicator" symbolColor="#E3E3E3" includeInLayout="false"/>
+				<s:Label id="infoText" verticalAlign="middle" textAlign="center"
+						 color="#E3E3E3" text="{text}" fontWeight="bold"
+						 showTruncationTip="true" maxDisplayedLines="2"
+						 />			
+			</s:HGroup>
+		</s:Group>
+		
+	</s:Group>
+</s:SkinnablePopUpContainer>

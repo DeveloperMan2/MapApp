@@ -1,0 +1,50 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace iconbutton "com.component.iconbutton.*";
+@namespace ns "http://www.supermap.com/mobile/2010";
+@namespace mx "library://ns.adobe.com/flex/mx";
+@namespace ns1 "http://flex.apache.org/experimental/ns";
+
+global
+{
+	content-background-alpha: 0;
+	backgroundColor:#FFFFFF;
+}
+
+ns|Map
+{
+	backgroundImage:Embed('assets/common/image/mapbg.png');
+	backgroundImageRepeat:true
+}
+
+s|ActionBar
+{
+	chromeColor:#FFFFFF;
+	defaultButtonAppearance:normal;
+}
+
+s|ActionBar.beveled s|Group#actionGroup s|Button,
+s|ActionBar.beveled s|Group#navigationGroup s|Button
+{
+	skinClass:ClassReference("com.skin.NoBorderButtonSkin");
+	iconPlacement:left
+}
+
+
+s|Button
+{
+	skinClass:ClassReference("com.skin.NoBorderButtonSkin");
+	iconPlacement:left
+}
+
+s|List
+{
+    contentBackgroundColor:#FFFFFF;
+}
+
+.OperationButton
+{
+	skinClass:ClassReference("com.skin.OperationButtonSkin")
+}
+
+

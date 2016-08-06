@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnablePopUpContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						   xmlns:s="library://ns.adobe.com/flex/spark" 
+						   resize="onResize(event)"
+						   backgroundAlpha="0">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.ResizeEvent;
+		
+			/**弹出窗口内容*/
+			[Bindable]
+			public var content:String = "";
+			
+			private var dm:DataManager = DataManager.getInstance();
+			
+			protected function okBtn_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub				
+				this.close(true,true);			
+			}
+			
+			protected function cancelBtn_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub				
+				this.close(true,false);										
+			}
+			
+			protected function onResize(event:ResizeEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(this.visible)
+				{
+					this.width = systemManager.screen.width;  
+					this.height = systemManager.screen.height;
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%"
+			  verticalAlign="middle" horizontalAlign="center">
+		<s:Group width="{400 * DataManager.getInstance().multiResolution}">
+			<s:Rect width="100%" height="100%" radiusX="6" radiusY="6">
+				<s:fill>
+					<s:LinearGradient rotation="90">
+						<s:GradientEntry color="0xFFFFFF" 
+										 alpha="0.85" />
+						<s:GradientEntry color="0xD8D8D8" 
+										 alpha="0.85" />
+					</s:LinearGradient>
+				</s:fill>
+				<s:stroke>
+					<s:SolidColorStroke color="#81BFE9" weight="1"/>
+				</s:stroke>
+			</s:Rect>
+			<s:VGroup width="100%" height="100%"
+					  gap="16"
+					  paddingBottom="16"
+					  paddingTop="16"
+					  paddingLeft="16"
+					  paddingRight="16">
+				<s:Label id="alertInfo" width="100%" height="80" text="{content}" 
+						 verticalAlign="middle" textAlign="center"/>
+				<s:Rect width="100%" height="1">
+					<s:fill>
+						<s:SolidColor color="#000000"/>
+					</s:fill>
+				</s:Rect>
+				<s:HGroup width="100%" height="100%" gap="32"
+						  verticalAlign="middle" horizontalAlign="center">
+					<s:Button id="okBtn" label="确定" click="okBtn_clickHandler(event)"/>
+					<s:Button id="cancelBtn" label="取消" click="cancelBtn_clickHandler(event)"/>
+				</s:HGroup>
+			</s:VGroup>
+		</s:Group>
+	</s:VGroup>
+</s:SkinnablePopUpContainer>

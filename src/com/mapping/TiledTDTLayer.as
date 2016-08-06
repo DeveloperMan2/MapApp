@@ -1,12 +1,12 @@
 package  com.mapping
 {
-	import com.supermap.web.utils.CoordinateReferenceSystem;
 	import com.supermap.web.core.Point2D;
 	import com.supermap.web.core.Rectangle2D;
-	import com.supermap.web.utils.Unit;
 	import com.supermap.web.mapping.Map;
 	import com.supermap.web.mapping.TiledCachedLayer;
 	import com.supermap.web.sm_internal;
+	import com.supermap.web.utils.CoordinateReferenceSystem;
+	import com.supermap.web.utils.Unit;
 	
 	import flash.net.URLRequest;
 
@@ -37,19 +37,21 @@ package  com.mapping
 		private function loadLayerInfo():void
 		{
 			var lt:String = this._layerType;
+			var resStart:int = 0;
+			var resLength:int = 0;
 			if(lt=="vec"){
-				var resStart = 0;
-				var resLength = 17;
+				resStart = 0;
+				resLength = 17;
 				this._levelOffset = 1;
 			}
 			else if(lt=="img"){
-				var resStart = 1;
-				var resLength = 17;
+				resStart = 1;
+				resLength = 17;
 				this._levelOffset = 2;
 			}
 			else if(lt=="ter"){
-				var resStart = 0;
-				var resLength = 13;
+				resStart = 0;
+				resLength = 13;
 				this._levelOffset = 1;
 			}
 			if(this._projection == "4326"){

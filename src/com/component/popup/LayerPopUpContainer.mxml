@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnablePopUpContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						   xmlns:s="library://ns.adobe.com/flex/spark"
+						   backgroundAlpha="0.3" backgroundColor="0x000000"  
+						   cachePolicy="on" 
+						   click="this.close()"
+						   add="addHandler(event)"
+						   creationComplete="initPopup(event)"
+						   resize="onResize(event)" 
+						   xmlns:fxg="assets.fxg.*">
+	<fx:Script>
+		<![CDATA[			
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			import mx.messaging.messages.ISmallMessage;
+			
+			import spark.components.Label;
+			
+			import sm.mobile.jx.component.iconbutton.ButtonItem;
+			import sm.mobile.jx.core.util.GPSUtil;
+			import sm.mobile.jx.core.util.NetworkUtil;
+			import sm.mobile.jx.core.util.features.FeatureUtilManager;
+			import sm.mobile.jx.event.FullSceneEvent;
+			[Bindable]
+			private var dm:DataManager = DataManager.getInstance();
+			
+			[Bindable]
+			private var isImageMap:Boolean = false;
+			
+			private var um:FeatureUtilManager = FeatureUtilManager.getInstance();
+			private var nUtil:NetworkUtil = NetworkUtil.getInstance();
+			protected function addHandler(event:FlexEvent):void
+			{					
+				if(this.fullPicSwitch != null && this.trafficSwitch != null && this.markerSwitch != null && this.photoSwitch != null)
+				{
+//					if(dm.userConfigVO != null)
+//					{
+//						this.fullPicSwitch.selected = dm.userConfigVO.isFullPicLayerVisible;						
+//						this.markerSwitch.selected =  dm.userConfigVO.isMarkerLayerVisible;
+//						this.photoSwitch.selected =  dm.userConfigVO.isPhotoLayerVisible;
+//						this.trafficSwitch.selected = dm.userConfigVO.isTrafficLayerVisible;
+//						this.imageLayerSwitch.selected = dm.userConfigVO.isImageLayerVisible;
+//						isImageMap = dm.userConfigVO.isImageLayerVisible;
+//					}
+					//全景图图层开关状态记录
+									
+//					
+					dm.userConfigVO.isFullPicLayerVisible = um.fullSceneUtil.isLayerVisible;
+					dm.userConfigVO.isMarkerLayerVisible = um.markerUtil.isLayerVisible;
+					dm.userConfigVO.isPhotoLayerVisible = um.photoUtil.isLayerVisible;
+					dm.userConfigVO.isTrafficLayerVisible = true;
+					//交通地图图层开关状态记录
+					if(dm.currentLayerList.getItemIndex(dm.trafficBaseLayer) > -1)
+					{
+						this.trafficSwitch.selected = true;
+					}
+					else
+					{
+						this.trafficSwitch.selected = false;
+						dm.userConfigVO.isTrafficLayerVisible = false;
+					}		
+				}
+				if(isImageMap && this.LakeRiverSwitch != null)
+				{					
+					if(dm.currentLayerList.getItemIndex(dm.lakeRiverLayer) > -1)
+					{
+						this.LakeRiverSwitch.selected = true;
+					}
+					else
+					{
+						this.LakeRiverSwitch.selected = false;
+					}						
+				}
+				
+				if(vg != null && backRect != null)
+				{
+					backRect.width = vg.width + 20;
+					backRect.height = vg.height + 20;
+					//					backRect.x = vg.x + 10;
+					//					backRect.y = vg.y - 10;
+				}
+				isImageMap = dm.userConfigVO.isImageLayerVisible;
+				
+			}
+			protected function onResize(event:ResizeEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(this.visible)
+				{
+					this.width = systemManager.screen.width;  
+					this.height = systemManager.screen.height;
+				}
+			}
+			protected function initPopup(event:FlexEvent):void
+			{			
+//				if(this.fullPicSwitch != null && this.trafficSwitch != null && this.markerSwitch != null && this.photoSwitch != null)
+//				{
+//					if(dm.userConfigVO != null)
+//					{
+//						this.fullPicSwitch.selected = dm.userConfigVO.isFullPicLayerVisible;						
+//						this.markerSwitch.selected =  dm.userConfigVO.isMarkerLayerVisible;
+//						this.photoSwitch.selected =  dm.userConfigVO.isPhotoLayerVisible;
+//						this.trafficSwitch.selected = dm.userConfigVO.isTrafficLayerVisible;
+//						this.imageLayerSwitch.selected = dm.userConfigVO.isImageLayerVisible;
+//						isImageMap = dm.userConfigVO.isImageLayerVisible;
+//					}
+//					
+//				}
+				
+				//底图切换状态记录
+				if(dm.currentLayerCode == 0)
+				{
+					imageLayerSwitch.selected = false;					
+					dm.currentButtonItem = null;
+				}
+				else
+				{
+					imageLayerSwitch.selected = true;					
+					dm.currentButtonItem = new ButtonItem();
+					dm.currentButtonItem.name = dm.mapVo.Jx25ImageLayer;
+				}
+				
+				//全景图图层开关状态记录
+				um.initUtils();
+				this.fullPicSwitch.selected = um.fullSceneUtil.isLayerVisible;
+				this.markerSwitch.selected = um.markerUtil.isLayerVisible;
+				this.photoSwitch.selected = um.photoUtil.isLayerVisible;
+				
+				isImageMap = dm.userConfigVO.isImageLayerVisible;
+				
+				//交通地图图层开关状态记录
+				if(dm.currentLayerList.getItemIndex(dm.trafficBaseLayer) > -1)
+				{
+					this.trafficSwitch.selected = true;
+				}
+				else
+				{
+					this.trafficSwitch.selected = false;
+					dm.userConfigVO.isTrafficLayerVisible = false;
+				}	
+				
+				if(isImageMap && this.LakeRiverSwitch != null)
+				{					
+					if(dm.currentLayerList.getItemIndex(dm.lakeRiverLayer) > -1)
+					{
+						this.LakeRiverSwitch.selected = true;
+					}
+					else
+					{
+						this.LakeRiverSwitch.selected = false;
+					}						
+				}
+				
+				um.fullSceneUtil.showLayer(this.fullPicSwitch.selected);
+				um.markerUtil.showLayer(this.markerSwitch.selected);
+				um.photoUtil.showLayer(this.photoSwitch.selected);	
+//							
+				if(vg != null && backRect != null)
+				{
+					backRect.width = vg.width + 20;
+					backRect.height = vg.height + 20;
+//					backRect.x = vg.x + 10;
+//					backRect.y = vg.y - 10;
+				}
+			}
+			
+			protected function layerControlGroup_clickHandler(event:MouseEvent):void
+			{
+				// 阻止弹出窗口关闭
+				event.stopImmediatePropagation();
+			}
+			
+			
+			//进入全景模式
+			private function fsTitleClickHandler(event:MouseEvent):void
+			{
+				var l:Object = event.currentTarget;
+				var fullInfo:Object = {};
+				fullInfo["alias"] = l.document;
+				fullInfo["msg"] = l.name;
+				var fullSceneEvent:FullSceneEvent = new FullSceneEvent(FullSceneEvent.SHOW_FULLSCENE, true);
+				fullSceneEvent.data = fullInfo;
+				this.parentApplication.dispatchEvent(fullSceneEvent);
+			}
+			
+			//是否开启全景图图层
+			protected function fullPicSwitch_changeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				um.curUtil = um.fullSceneUtil;
+				um.fullSceneUtil.showLayer(this.fullPicSwitch.selected);
+				dm.userConfigVO.isFullPicLayerVisible = this.fullPicSwitch.selected;
+//				dm.initFeatureLayers();
+			}
+			
+			// 是否开启拍照图层
+			protected function photoSwitch_changeHandler(event:Event):void
+			{
+				um.curUtil = um.photoUtil;
+				um.photoUtil.showLayer(this.photoSwitch.selected);
+				dm.userConfigVO.isPhotoLayerVisible = this.photoSwitch.selected;
+//				dm.initFeatureLayers();
+			}
+			
+			// 是否开启用户标记图层
+			protected function markerSwitch_changeHandler(event:Event):void
+			{
+				um.curUtil = um.markerUtil;
+				um.markerUtil.updateFeatures(false);		
+				if(this.markerSwitch.selected)
+				{
+					um.markerUtil.renewFeatures();
+				}
+				um.markerUtil.showLayer(this.markerSwitch.selected);
+				dm.userConfigVO.isMarkerLayerVisible = this.markerSwitch.selected;
+//				dm.initFeatureLayers();
+			}
+			//是否开启交通地图图层
+			protected function trafficSwitch_changeHandler(event:Event):void
+			{
+				//					if(GPSUtil.checkNetState())
+				if(dm.trafficBaseLayer != null)
+				{
+					if(trafficSwitch.selected)
+					{
+						dm.trafficBaseLayer.visible = true;
+						dm.currentLayerList.addItem(dm.trafficBaseLayer);
+					}
+					else
+					{
+						dm.trafficBaseLayer.visible = false;
+						dm.currentLayerList.removeItem(dm.trafficBaseLayer);
+					}
+				}
+				else
+				{
+					//初始化交通图
+					dm.trafficBaseLayer = dm.addWmtsLayer("TrafficCache", dm.mapVo.jxTrafficLayer, "map", 1, false);
+					dm.map.addLayer(dm.trafficBaseLayer, 2);
+					dm.currentLayerList.addItem(dm.trafficBaseLayer);
+					//dm.initMapBaseLayer();
+				}
+				dm.userConfigVO.isTrafficLayerVisible = this.trafficSwitch.selected;
+//				dm.initFeatureLayers();				
+			}
+			
+			protected function imageLayerSwitch_changeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				dm.currentLayerCode = 0;
+				dm.currentButtonItem = null;
+				if(imageLayerSwitch.selected)
+				{
+					dm.currentLayerCode = 1;
+					dm.currentButtonItem = new ButtonItem();
+					dm.currentButtonItem.name = dm.mapVo.Jx25ImageLayer;
+				}
+			
+				dm.userConfigVO.isImageLayerVisible = this.imageLayerSwitch.selected;
+				dm.initMapBaseLayer();
+				isImageMap = dm.userConfigVO.isImageLayerVisible;
+				if(isImageMap && this.LakeRiverSwitch != null)
+				{
+					LakeRiverSwitch.selected = true;
+				}
+				this.validateNow();
+				if(vg != null && backRect != null)
+				{
+					backRect.width = vg.width + 20;
+					backRect.height = vg.height + 20;
+					//					backRect.x = vg.x + 10;
+					//					backRect.y = vg.y - 10;
+				}				
+				this.validateNow();
+			}
+			
+			protected function LakeRiverSwitch_changeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				
+				if(dm.lakeRiverLayer != null)
+				{
+					if(LakeRiverSwitch.selected)
+					{
+						dm.lakeRiverLayer.visible = true;
+						dm.currentLayerList.addItem(dm.lakeRiverLayer);
+					}
+					else
+					{
+						dm.lakeRiverLayer.visible = false;
+						dm.currentLayerList.removeItem(dm.lakeRiverLayer);
+					}
+				}
+				else
+				{
+					//初始影像水利要素图层
+					dm.lakeRiverLayer = dm.addWmtsLayer("ForImageCache", dm.mapVo.jxLakeRiverLayer, "forImage",1,false);					
+					dm.map.addLayer(dm.lakeRiverLayer, 0);
+					dm.currentLayerList.addItem(dm.lakeRiverLayer);		
+					//dm.initMapBaseLayer();
+				}						
+			}
+			
+			private function adjust():void
+			{
+				
+			}
+			
+		]]>
+	</fx:Script>
+	<s:VGroup right="12" top="{dm.appFontSize+90}" horizontalAlign="left" >		
+		<s:Group id="layerControlGroup" 
+				 click="layerControlGroup_clickHandler(event)">
+			<s:Rect width="100%" height="100%" radiusX="6" radiusY="6" id="backRect">
+				<s:fill>
+					<s:SolidColor color="#cccccc" alpha="0.9"/>
+				</s:fill>
+			</s:Rect>
+			<s:VGroup width="{400*dm.multiResolution} "  horizontalAlign="justify" id="vg" gap="{dm.appFontSize * 0.8}"
+					  paddingBottom="12" paddingTop="12" paddingLeft="12" paddingRight="12">
+				<s:HGroup width="100%" height="100%" verticalAlign="middle">
+					<s:Image source="{dm.iconAssembly.imgLayer2_5Icon}" smooth="true"/>
+					<s:Label text="江西影像图"/>
+					<s:Spacer width="100%"/>
+					<s:ToggleSwitch id="imageLayerSwitch" change="imageLayerSwitch_changeHandler(event)" accentColor="#5DB649"/>
+				</s:HGroup>
+				<s:Rect width="100%" height="1">
+					<s:fill>
+						<s:SolidColor color="#D6C8CB"/>
+					</s:fill>
+				</s:Rect>
+				<s:HGroup width="100%" height="100%" verticalAlign="middle" includeInLayout="{isImageMap}" visible="{isImageMap}">
+					<s:Image source="{dm.iconAssembly.imgLayerIcon}" smooth="true"/>
+					<s:Label text="河流湖泊"/>
+					<s:Spacer width="100%"/>
+					<s:ToggleSwitch id="LakeRiverSwitch" change="LakeRiverSwitch_changeHandler(event)" accentColor="#FFDC00"/>
+				</s:HGroup>
+				<s:Rect width="100%" height="1" includeInLayout="{isImageMap}" visible="{isImageMap}">
+					<s:fill>
+						<s:SolidColor color="#D6C8CB"/>
+					</s:fill>
+				</s:Rect>
+				<s:HGroup width="100%" height="100%" verticalAlign="middle">
+					<s:Image source="{dm.iconAssembly.trafficIcon}" smooth="true"/>
+					<s:Label text="江西交通图"/>
+					<s:Spacer width="100%"/>
+					<s:ToggleSwitch id="trafficSwitch" change="trafficSwitch_changeHandler(event)" accentColor="#DB0000"/>
+				</s:HGroup>
+				<s:Rect width="100%" height="1">
+					<s:fill>
+						<s:SolidColor color="#D6C8CB"/>
+					</s:fill>
+				</s:Rect>
+				<s:HGroup width="100%" height="100%" verticalAlign="middle">
+					<s:Image source="{dm.iconAssembly.orangePointIcon}" smooth="true"/>
+					<s:Label text="水库全景图"/>
+					<s:Spacer width="100%"/>
+					<s:ToggleSwitch id="fullPicSwitch" change="fullPicSwitch_changeHandler(event)" accentColor="#2A7DFC"/>
+				</s:HGroup>
+				<s:Rect width="100%" height="1">
+					<s:fill>
+						<s:SolidColor color="#D6C8CB"/>
+					</s:fill>
+				</s:Rect>
+				<s:HGroup width="100%" height="100%" verticalAlign="middle">
+					<s:Image source="{dm.iconAssembly.photoMapIcon}" smooth="true"/>
+					<s:Label text="采集照片"/>
+					<s:Spacer width="100%"/>
+					<s:ToggleSwitch id="photoSwitch" change="photoSwitch_changeHandler(event)" accentColor="#FF9F2E"/>
+				</s:HGroup>			
+				<!--标记图层-->
+				<s:Rect width="100%" height="1">
+					<s:fill>
+						<s:SolidColor color="#D6C8CB"/>
+					</s:fill>
+				</s:Rect>
+				<s:HGroup width="100%" height="100%" verticalAlign="middle">
+					<s:Image source="{dm.iconAssembly.markerIcon}" smooth="true"/>
+					<s:Label text="我的标记"/>
+					<s:Spacer width="100%"/>
+					<s:ToggleSwitch id="markerSwitch" change="markerSwitch_changeHandler(event)" accentColor="#2A7DFC"/>
+				</s:HGroup>
+			</s:VGroup>
+		</s:Group>
+	</s:VGroup>
+</s:SkinnablePopUpContainer>

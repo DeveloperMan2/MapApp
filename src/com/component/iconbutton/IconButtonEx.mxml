@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:iconbutton="sm.mobile.jx.component.iconbutton.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			[Bindable]
+			public var iconWith:Number=96;
+			[Bindable]
+			public var iconHeight:Number = 96;
+			[Bindable]
+			public var skinClassEx:Class = IconButtonSkin;
+			[Bindable]
+			public var upCls:Class;
+			[Bindable]
+			public var downCls:Class;
+			
+			[Bindable]
+			public var iconButtonText:String; 
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%" horizontalAlign="center" styleName="MainTitle">
+		<iconbutton:IconButton skinClass="{skinClassEx}"
+							   width="{iconWith}" height="{iconHeight}"
+							   up="{upCls}"
+							   down="{downCls}"/>
+		<s:Label text="{iconButtonText}"
+				 width="100%" 
+				 textAlign="center" verticalAlign="middle"/>
+	</s:VGroup>
+</s:Group>
+

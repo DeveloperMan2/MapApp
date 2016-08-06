@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+-->
+
+
+<!--- The default skin class for the Spark Button component.  
+
+@see spark.components.Button
+
+@langversion 3.0
+@playerversion Flash 10
+@playerversion AIR 1.5
+@productversion Flex 4
+-->
+<s:SparkButtonSkin xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:fb="http://ns.adobe.com/flashbuilder/2009"
+				   width="{72 * getStyle('multiResolution')}" height="{72 * getStyle('multiResolution')}"
+				   alpha.disabled="0.5">
+	
+	<fx:Metadata>
+		<![CDATA[ 
+		/** 
+		* @copy spark.skins.spark.ApplicationSkin#hostComponent
+		*/
+		[HostComponent("spark.components.Button")]
+		]]>
+	</fx:Metadata>
+	
+	<!-- states -->
+	<s:states>
+		<s:State name="up" />
+		<s:State name="over" />
+		<s:State name="down" />
+		<s:State name="disabled" />
+	</s:states>
+	
+
+	<!-- layer 2: fill -->
+	<!--- @private -->
+	
+	<s:Rect id="fill" left="0" right="0" top="0" bottom="0" radiusX="6" radiusY="6">
+		<s:fill>
+			<s:SolidColor color="#037ac5"/>
+		</s:fill>
+		<!--<s:fill>
+		<s:LinearGradient rotation="90">
+		<s:GradientEntry color.down="#67CEFF"
+		color="#67CEFF"
+		alpha="0.8" 
+		alpha.down="1"/>
+		<s:GradientEntry color.down="#2E75BB"
+		color="#2E75BB"
+		alpha="0.8" 
+		alpha.down="1"/>
+		</s:LinearGradient>
+		</s:fill>-->
+	</s:Rect>
+	
+	<!-- layer 7: border - put on top of the fill so it doesn't disappear when scale is less than 1 -->
+	<!--- @private -->
+	<!--<s:Rect id="border" left="0" right="0" top="0" bottom="0" radiusX="6" radiusY="6">
+	<s:stroke>
+	<s:LinearGradientStroke rotation="90" weight="1">
+	<s:GradientEntry color="0x000000" 
+	alpha="0.5625"
+	alpha.down="0.6375" />
+	<s:GradientEntry color="0x000000" 
+	alpha="0.75" 
+	alpha.down="0.85" />
+	</s:LinearGradientStroke>
+	</s:stroke>
+	</s:Rect>-->
+	
+	<!-- layer 8: text -->
+	<!--- @copy spark.components.supportClasses.ButtonBase#labelDisplay  -->
+	<s:HGroup width="100%" height="100%"  
+		paddingBottom="20" paddingTop="20" paddingLeft="20" paddingRight="20" horizontalAlign="center" verticalAlign="middle">
+		<s:Label id="labelDisplay" color="#F1F1F1"
+				 textAlign="center"  width="100%" height="100%" 
+				 maxDisplayedLines="1"
+				 horizontalCenter="0" verticalCenter="1" verticalAlign="middle"
+				 left="10" right="10" top="2" bottom="2">
+		</s:Label>
+	</s:HGroup>
+	
+	
+</s:SparkButtonSkin>

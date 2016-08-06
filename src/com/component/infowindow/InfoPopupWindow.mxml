@@ -1,0 +1,461 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					  xmlns:s="library://ns.adobe.com/flex/spark"
+					  xmlns:fxg="assets.fxg.*"
+					  xmlns:info="sm.mobile.jx.component.infowindow.*"	
+					  creationComplete="onInit(event)" backgroundAlpha="0.3"
+					  currentState="ICONTEXT">	
+	<fx:Script>
+		<![CDATA[
+			import com.supermap.web.core.Feature;
+			import com.supermap.web.core.Point2D;
+			import com.supermap.web.core.geometry.GeoLine;
+			import com.supermap.web.mapping.FeaturesLayer;
+			import com.supermap.web.mapping.InfoWindow;
+			
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			
+			import flashx.textLayout.elements.BreakElement;
+			import flashx.textLayout.formats.WhiteSpaceCollapse;
+			
+			import sm.mobile.jx.core.util.BaseUtil;
+			import sm.mobile.jx.core.util.features.FeatureUtilManager;
+			import sm.mobile.jx.core.util.measure.MeasureUtil;
+			import sm.mobile.jx.event.FullSceneEvent;
+			import sm.mobile.jx.views.FeatureDetailView;
+			import sm.mobile.jx.views.PhotoDetailView;
+			import sm.mobile.jx.views.PhotoOnlineDetailView;
+			import sm.mobile.jx.views.PhotoView;
+			import sm.mobile.jx.views.marker.MarkerView;
+			import sm.mobile.jx.vo.FeatureVO;
+			import sm.mobile.jx.vo.MarkerVO;
+			import sm.mobile.jx.vo.PhotoVO;
+			
+			[Bindable]
+			public var location:Point2D = null;
+			
+			private var _feature:Feature = null;
+			
+			public var fvo:FeatureVO = null;
+			
+			public var isShow:Boolean = false;
+			
+			[Bindable]
+			public function get feature():Feature
+			{
+				return _feature;
+			}
+
+			public function set feature(value:Feature):void
+			{
+				_feature = value;
+			}
+
+			public function setTextMode(sz:String=null):void
+			{
+				this.currentState = "TEXT";	
+				if(sz!=null)
+				{
+					if(label != null)
+					{
+						label.fName.text = sz;
+					}
+					else
+					{	
+						label.name = sz;
+					}
+				}				
+			}
+			
+			public function setInfoMode():void
+			{
+				this.currentState = "ICONTEXT";	
+			}
+			
+			public var tempVo:Object = null;
+			private var dm:DataManager = DataManager.getInstance();
+			/**
+			 *点击显示详情，按要素类型分拆
+			 */
+			protected function featureInfoClickHandler(event:MouseEvent):void
+			{	
+				try
+				{
+					var t:Date = new Date();
+					
+					// 记录上次地图范围
+					if(dm.map != null)
+					{
+						dm.mapRect = dm.map.viewBounds.clone();
+						dm.mapVo.viewBounds = dm.map.viewBounds.clone();
+					}		
+					
+					//
+					// 跳转到详情
+					if(tempVo != null)
+					{						
+						var fm:FeatureUtilManager = FeatureUtilManager.getInstance();
+						if(tempVo.type == FULLSCENEVO)
+						{	
+							var fullInfo:Object = {};
+							fullInfo["alias"] = tempVo.name;
+							fullInfo["msg"] = tempVo.address;
+							var fullSceneEvent:FullSceneEvent = new FullSceneEvent(FullSceneEvent.SHOW_FULLSCENE, true);
+							fullSceneEvent.data = fullInfo;
+							dm.map.parentApplication.dispatchEvent(fullSceneEvent);	
+							
+							fm.curUtil = fm.fullSceneUtil;
+//							if(info != null && info.CLICKMODE != 1)
+//							{
+//								dm.map.parentApplication.dispatchEvent(fullSceneEvent);	
+//								return;
+//							}						
+							fm.curUtil = fm.fullSceneUtil;
+							
+							//							fm.fullSceneUtil.featureVo.item = fullInfo;//####
+						}
+						else if(tempVo.type == QUERYVO)
+						{							
+							FlexGlobals.topLevelApplication.navigator.pushView(FeatureDetailView,fvo,null,dm.getTransition());
+							fm.curUtil = fm.queryUtil;
+							
+						}
+						else if(tempVo.type == PHOTOVO)
+						{
+							if(fvo.isEditing)
+							{
+								FlexGlobals.topLevelApplication.navigator.pushView(PhotoView,fvo,null,dm.getTransition());
+							}
+							else{
+								FlexGlobals.topLevelApplication.navigator.pushView(PhotoDetailView,fvo,null,dm.getTransition());
+							}
+							fm.curUtil = fm.photoUtil;
+						}
+						else if(tempVo.type == MARKERVO)
+						{
+							FlexGlobals.topLevelApplication.navigator.pushView(MarkerView,fvo,null,dm.getTransition());
+//							if(info != null && info.CLICKMODE != 1)
+//							{
+//								FlexGlobals.topLevelApplication.navigator.pushView(MarkerView,fvo,null,dm.getTransition());
+//								return;
+//							}
+//							
+							fm.curUtil = fm.markerUtil;
+						}
+						else if(tempVo.type == ONLINEQUERYVO)
+						{
+							FlexGlobals.topLevelApplication.navigator.pushView(PhotoOnlineDetailView,fvo,null,dm.getTransition());
+							fm.curUtil = fm.photoUtil;
+						}
+						else
+						{
+							if(dm.map != null)
+							{
+								hide();
+							}
+						}	
+					}
+					var tt:Date = new Date();
+					trace("feature Click Handle takes " + (tt.time - t.time).toString());
+				}
+				catch(err:Error)
+				{
+					trace(err.message);
+				}	
+			}
+			// 要素类型
+			private const NOTHING:int = -1;
+			private const QUERYVO:int = 0;
+			private const PHOTOVO:int = 1;
+			private const MARKERVO:int = 2;
+			private const FULLSCENEVO:int = 3;
+			private const ONLINEQUERYVO:int = 4;
+			
+			/**根据传递的对象解析x y name address type属性*/
+			protected function getTempVO(fdata:Object):Boolean
+			{	
+				try
+				{
+					if(fdata == null)
+						return false;
+					
+					if(tempVo == null)
+					{
+						tempVo = {};
+					}
+					var fm:FeatureUtilManager = FeatureUtilManager.getInstance();
+					if(fdata.hasOwnProperty("CENTER_X") || fdata.hasOwnProperty("center_x"))
+					{
+						tempVo["type"] = QUERYVO;
+						tempVo["icon"] = this._icon == null ? dm.iconAssembly.bluePointIcon : _icon;
+						tempVo["x"] = fdata.hasOwnProperty("CENTER_X") ? fdata.CENTER_X : fdata.center_x;
+						tempVo["y"] = fdata.hasOwnProperty("CENTER_Y") ? fdata.CENTER_Y : fdata.center_y;
+						fm.curUtil = fm.queryUtil;
+						tempVo["name"] = fdata.hasOwnProperty("NAME") ? fdata.NAME: "查询要素";
+						tempVo["name"] = fdata.hasOwnProperty(dm.featureNameField) ? fdata[dm.featureNameField] :tempVo["name"] ;
+						tempVo["address"] = fdata.hasOwnProperty("ADDRESS") ? fdata.ADDRESS: "";
+						tempVo["address"] = fdata.hasOwnProperty("ADDRESS_NEW") ? fdata.ADDRESS_NEW : tempVo["address"] ;					
+					}
+					else if(fdata.hasOwnProperty("ALIAS") || fdata.hasOwnProperty("alias"))
+					{
+						fm.curUtil = fm.fullSceneUtil;
+						tempVo["type"] = FULLSCENEVO;
+						tempVo["icon"] = this._icon == null ? dm.iconAssembly.fullPicIcon : _icon;
+						tempVo["x"] = fdata.hasOwnProperty("X") ? fdata.X : 0;
+						tempVo["y"] = fdata.hasOwnProperty("Y") ? fdata.Y : 0;
+						
+						tempVo["name"] = fdata.hasOwnProperty("ALIAS") ? fdata["ALIAS"] : "全景图";
+						tempVo["address"] = fdata.hasOwnProperty("MSG") ? fdata["MSG"]: "" ;	
+					}
+					else if(fdata is PhotoVO || fdata.hasOwnProperty("CHECKIMG"))
+					{
+						tempVo["type"] = PHOTOVO;
+						tempVo["icon"] = this._icon == null ? dm.iconAssembly.photoMapIcon : _icon;
+						tempVo["x"] = fdata.hasOwnProperty("X") ? fdata.X : fdata.x;
+						tempVo["y"] = fdata.hasOwnProperty("Y") ? fdata.Y : fdata.y;
+						fm.curUtil = fm.photoUtil;
+						tempVo["name"] = fdata.hasOwnProperty("NAME") ? fdata.NAME : fdata.name;
+						tempVo["address"] = fdata.hasOwnProperty("ADDRESS") ? fdata.ADDRESS : fdata.address;	
+					}
+					else if(fdata is MarkerVO || fdata.hasOwnProperty("MARKERSTATE")) //###数据库添加字段标记状态
+					{
+						tempVo["type"] = MARKERVO;
+						tempVo["icon"] = this._icon == null ? dm.iconAssembly.markerIcon : _icon;
+						tempVo["x"] = fdata.hasOwnProperty("X") ? fdata.X : fdata.x;
+						tempVo["y"] = fdata.hasOwnProperty("Y") ? fdata.Y : fdata.y;
+						fm.curUtil = fm.markerUtil;
+						tempVo["name"] = fdata.hasOwnProperty("NAME") ? fdata.NAME : fdata.name;
+						tempVo["address"] = fdata.hasOwnProperty("ADDRESS") ? fdata.ADDRESS : fdata.address;	
+					}
+					else if(fdata.hasOwnProperty("sourceurl") || fdata.hasOwnProperty("url") )
+					{
+						tempVo["type"] = ONLINEQUERYVO;
+						tempVo["icon"] = this._icon == null ? dm.iconAssembly.photoMapIcon : _icon;
+						tempVo["x"] = fdata.hasOwnProperty("X") ? fdata.X : fdata.x;
+						tempVo["y"] = fdata.hasOwnProperty("Y") ? fdata.Y : fdata.y;
+						fm.curUtil = fm.photoUtil;
+						tempVo["name"] = fdata.hasOwnProperty("NAME") ? fdata.NAME : fdata.name;
+						tempVo["address"] = fdata.hasOwnProperty("ADDRESS") ? fdata.ADDRESS : fdata.address;
+					}
+					else 
+					{
+						fm.curUtil = null;
+						tempVo["type"] = NOTHING;
+						return false
+					}
+					
+					if(isNaN(tempVo.x) || isNaN(tempVo.y))
+					{
+						return false;
+					}
+					tempVo["item"] = fdata;
+					return true;
+				}
+				catch(err:Error)
+				{
+					trace(err.message);
+					return false;
+				}
+				
+				return false;
+			}	
+			public function updateInfo():void
+			{
+				setInfoWindowStyle();
+				var fm:FeatureUtilManager = FeatureUtilManager.getInstance();
+				if(dm.map == null || feature == null || fm.curUtil == null )
+				{
+					return;
+				}
+				if(fm.curUtil is BaseUtil)
+				{
+					var b:BaseUtil = fm.curUtil as BaseUtil;
+					if(b == null || b.featureVo == null )
+					{
+						feature = null;
+						return;
+					}
+					else if((b.featureVo.ds == null || b.featureVo.ds.length < 1) && b.featureVo.item == null && b.featureVo.editVO == null)
+					{
+						feature = null;
+						return ;
+					}
+				}
+				else if(fm.curUtil is MeasureUtil)
+				{
+					var m:MeasureUtil = fm.curUtil as MeasureUtil;
+					if(m == null || !m.isActiveMeasure)
+					{
+						feature = null;
+						return;
+					}					
+				}
+//				var flg:Boolean = false;
+//				// 过滤条件
+//				do
+//				{
+//					try
+//					{
+//						if(dm.map == null || feature == null || fm.curUtil == null )
+//						{
+//							break;
+//						}
+//						if(!fm.curUtil.isLayerVisible && !fm.curUtil.featureVo.isEditing)
+//						{
+//							break;
+//						}
+//						if(fm.curUtil != null && fm.curUtil.featureVo != null)
+//						{
+//							if(fm.curUtil.featureVo.ds == null || fm.curUtil.featureVo.ds.length <= 0)
+//							{
+//								if(fm.curUtil
+//								break;
+//							}					
+//						}
+//					}
+//					catch(err:Error)
+//					{
+//						break;
+//					}					
+//					flg = true;
+//				}while(false);
+//				
+//				if(!flg)
+//				{
+//					return;
+//				}
+					
+				var lt:Point = dm.map.mapToScreen(feature.geometry.center);
+				lt = dm.map.localToGlobal(lt);	
+				
+				if((dm.map.infoWindow.visible || dm.infoWnd.isShow) && feature.visible)
+				{
+					dm.map.infoWindow.show(feature.geometry.center);
+				}
+				if(this.currentState == "TEXT")
+				{					
+					setTextMode();	
+//					label.validateNow();
+//					dm.map.infoWindow.content = this.label;
+				}
+				else
+				{	
+					if(tempVo == null)
+					{
+						hide();
+						return;
+					}
+					setInfoMode();		
+					simple.fName.text = tempVo.name;
+					simple.fAddress.text = tempVo.address;
+					simple.curFeature = feature;		
+//					simple.validateNow();					
+					//dm.map.infoWindow.content = this.simple;
+				}
+				if(this.isShow)
+				{
+					this.isShow = false;
+				}
+				this.includeInLayout = true;
+				this.visible =true;
+				this.x = lt.x;
+				this.y = lt.y;
+				dm.map.infoWindow.content = this;
+			}
+			/**
+			 * 设置弹出信息窗口的样式
+			 * */
+			protected function setInfoWindowStyle():void
+			{
+				if(dm.map.infoWindow.visible)
+				{
+					dm.map.infoWindow.setStyle("dropshadowvisible",false);
+					dm.map.infoWindow.setStyle("backgroundAlpha",0.5);
+					dm.map.infoWindow.setStyle("backgroundColor",0xF4FEFE); 					
+					dm.map.infoWindow.setStyle("borderColor",0xF4FEFE);
+					dm.map.infoWindow.setStyle("borderAlpha",0.5);
+					dm.map.infoWindow.setStyle("borderThickness",0);
+					dm.map.infoWindow.setStyle("paddingTop",0);
+					dm.map.infoWindow.setStyle("paddingRight",0);
+					dm.map.infoWindow.setStyle("paddingLeft",0);
+					dm.map.infoWindow.setStyle("paddingBottom",0);
+					dm.map.infoWindow.setStyle("borderVisible",false);
+					dm.map.infoWindow.closeButtonVisible = false;
+					dm.map.infoWindow.infoWindowLabelVisible = false;
+				}
+			}				
+				
+			/**
+			 *显示要素概要信息
+			 */		
+			public function showInfo():void
+			{
+				try
+				{
+					if(dm.map == null || feature == null)
+					{
+						return;
+					}	
+					
+					if(!getTempVO(feature.attributes))
+					{
+						return;
+					}
+					show();					
+				}
+				catch(err:Error)
+				{
+					trace(err.message);
+				}
+			}
+			
+			/**要素绘制的图层*/
+			private var _layer:FeaturesLayer = null;
+			/**要素的图标样式*/
+			private var _icon:Class = null;
+			
+			protected function onInit(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(simple != null)
+				{
+					simple.content.addEventListener(MouseEvent.CLICK,featureInfoClickHandler);
+				}
+				hide();
+			}
+			public function hide():void
+			{				
+				if(dm.map != null)
+				{
+					dm.map.infoWindow.hide();
+				}
+				this.includeInLayout = false;
+				this.visible = false;
+			}
+			public function show():void
+			{
+				updateInfo();
+				if( feature != null)
+				{
+					dm.map.infoWindow.show(feature.geometry.center);
+//					this.includeInLayout = true;
+//					this.visible = true;
+				}
+			}
+		]]>
+	</fx:Script>
+	<s:states>
+		<s:State name="TEXT"/>
+		<s:State name="ICONTEXT"/>
+	</s:states>	
+	<s:Group>
+		<s:Rect>
+			<s:stroke>
+				<s:SolidColorStroke color="#131313"/>
+			</s:stroke>
+		</s:Rect>
+		<info:LabelInfoTip id="label" includeIn="TEXT"/>
+		<info:SimpleInfo id="simple" includeIn="ICONTEXT"/>
+	</s:Group>
+</s:SkinnableContainer>

@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnablePopUpContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						   xmlns:s="library://ns.adobe.com/flex/spark" 
+						   backgroundAlpha="0.3" backgroundColor="0x000000"  
+						   xmlns:iconbutton="sm.mobile.jx.component.iconbutton.*"
+						   cachePolicy="on" 
+						   click="this.close()"
+						   add="addHandler(event)" resize="onResize(event)"
+						   creationComplete="initPopup(event)"						   
+						   initialize="onInit(event)"
+						   close="onClose(event)"
+						   xmlns:fxg="assets.fxg.*">  
+	
+	<fx:Script>
+		<![CDATA[
+			import com.supermap.web.core.Rectangle2D;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Spacer;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			
+			import spark.components.Label;
+			import spark.components.List;
+			import spark.components.NavigatorContent;
+			import spark.events.IndexChangeEvent;
+			import spark.events.PopUpEvent;
+			
+			import sm.mobile.jx.core.util.DataBaseUtil;
+			import sm.mobile.jx.core.util.LocationUtil;
+			import sm.mobile.jx.core.util.features.FeatureUtilManager;
+			import sm.mobile.jx.vo.MainVO;
+			import sm.mobile.jx.vo.QueryVO;
+			[Bindable]
+			private var dm:DataManager = DataManager.getInstance();				
+			private var dt:ArrayCollection = new ArrayCollection([]);
+						
+			[Bindable]
+			private var dbUtil:DataBaseUtil = null;
+			
+			private var fm:FeatureUtilManager = FeatureUtilManager.getInstance();
+			
+			/**
+			 * 读取地图当前的范围
+			 * */
+			protected function addHandler(event:FlexEvent):void
+			{
+				if(dt == null)
+				{
+					getBoundData();
+				}
+			}			
+			/**
+			 * 初始化UI组件
+			 * */
+			protected function initPopup(event:FlexEvent):void
+			{				
+				initGroupContainer();
+			}
+			/**
+			 * 避免自动关闭
+			 * */
+			protected function layerControlGroup_clickHandler(event:MouseEvent):void
+			{
+				// 阻止弹出窗口关闭
+				event.stopImmediatePropagation();
+			}
+			/**
+			 * 初始化数据库
+			 * */
+			protected function initDbUtil():void
+			{
+				if(dbUtil == null)
+				{
+					dbUtil = new DataBaseUtil(MainVO.DataCacheRootPath + QueryVO.DbName);
+					dbUtil.open(SQLMode.READ);
+				}		
+			}
+			/**
+			 * 关闭数据库
+			 * */
+			public function closeDbUtil():void
+			{
+				if(dbUtil != null)
+				{
+					dbUtil.close();
+					dbUtil = null;
+				}		
+			}
+			/**
+			 * 关闭数据库
+			 * */
+			protected function onClose(event:PopUpEvent):void
+			{
+				// TODO Auto-generated method stub
+				closeDbUtil();
+			}
+			
+			protected function onResize(event:ResizeEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(this.visible)
+				{
+					this.width = systemManager.screen.width;  
+					this.height = systemManager.screen.height;
+				}
+			}
+			
+			/**
+			 * 查询省市县范围数据
+			 * *
+			 * */
+			protected function getBoundData():void
+			{
+				if(fm.locationUtil.cityBounds != null && fm.locationUtil.cityBounds.length > 1)
+				{
+					dt = fm.locationUtil.cityBounds;
+					return;
+				}
+				
+				initDbUtil();
+				dt = dbUtil.getSubRegionBounds(LocationUtil.ProvinceID);
+				for (var idx:int = 0; idx < dt.length; idx++)
+				{
+					var tmp:ArrayCollection = null;
+					var itm:Object = dt.getItemAt(idx);
+					if(itm != null)
+					{
+						tmp = dbUtil.getSubRegionBounds(itm.id);
+						if(tmp != null)
+						{
+							itm["sub"] = tmp;
+							
+							dt[idx] = itm;
+						}
+					}
+				}	
+				/**存储全部市县范围*/
+				fm.locationUtil.cityBounds = dt;
+				closeDbUtil();
+			}
+			/**
+			 * 初始化groupContainer
+			 * */
+			protected function initGroupContainer():void
+			{
+				if(dt != null)
+				{
+					for each(var itm:Object in dt)
+					{
+						var nav:NavigatorContent = new NavigatorContent();
+						nav.percentHeight = 100;
+						nav.percentWidth = 100;
+						nav.label = itm["name"];
+//						lbl.addEventListener(MouseEvent.CLICK,onClick);
+						
+//						groupContainer.addElement(lbl);
+						var list:List = new List();
+						list.setStyle("textAlign","center");
+						list.percentWidth = 100;
+						list.labelField = "name";					
+						list.dataProvider = (itm["sub"] as ArrayCollection);
+						list.addEventListener(IndexChangeEvent.CHANGE,onBoundItemChange);	
+						nav.addElement(list);
+						groupContainer.addElement(nav);
+						
+//						var spc:Spacer = new Spacer();
+//						spc.height = 20;		
+//						groupContainer.addElement(spc);						
+					}
+				}
+				else
+				{
+					if(dm.infoPopup == null)
+					{
+						dm.infoPopup = new InfoPopupContainer();
+					}
+					dm.infoPopup.initInfo("读取市县数据失败",2500,true);					
+					dm.infoPopup.open(this,true);
+				}
+			}
+			/**
+			 * 选择新的行政范围
+			 * */
+			protected function onBoundItemChange(ev:IndexChangeEvent):void
+			{
+				var obj:Object = (ev.currentTarget as List).selectedItem;
+				try
+				{
+					var bound:Rectangle2D = new Rectangle2D(obj.left,obj.bottom,obj.right,obj.top);
+					if(bound != null)
+					{
+						dm.map.viewBounds = bound.clone();	
+						fm.locationUtil.address = obj.name;
+						dm.mapRect = bound.clone();
+					}	
+				}
+				catch(er:Error)
+				{
+					trace(er.message);
+				}
+				
+			}
+			protected function onClick(ev:MouseEvent):void
+			{
+				var f:Label = ev.currentTarget as Label;
+				try
+				{
+					if(f != null && f.document != null)
+					{
+						var obj:Object= f.document;
+						var bound:Rectangle2D = new Rectangle2D(obj.left,obj.bottom,obj.right,obj.top);
+						if(bound != null)
+						{
+							dm.map.viewBounds = bound.clone();	
+							fm.locationUtil.address = f.text;
+							dm.mapRect = bound.clone();
+						}
+					}						
+				}
+				catch(er:Error)
+				{
+					trace(er.message);
+				}
+				
+			}
+			/**
+			 * 初始化时加载数据
+			 * */
+			protected function onInit(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				getBoundData();				
+			}
+			
+		]]>
+	</fx:Script>	
+	
+	<s:VGroup gap="{dm.appFontSize}" top="{dm.appFontSize}" bottom="{dm.appFontSize}" right="{dm.appFontSize}" horizontalAlign="left">
+		<s:Group id="layerControlGroup"  width="{320 * dm.multiResolution}" height="{480 * dm.multiResolution}"
+				 click="layerControlGroup_clickHandler(event)" right = "12">
+			<s:Rect width="100%" height="100%" right="0" radiusX="6" radiusY="6">
+				<s:fill>
+					<s:SolidColor color="#FFFFFF"/>
+				</s:fill>
+				<s:filters>
+					<s:DropShadowFilter distance="{dm.multiResolution*5}" blurX="2" blurY="2" color="#CCCCCC" alpha="0.6"/> 
+				</s:filters>
+			</s:Rect>			
+			<s:VGroup id="groupContainer" width="100%" height="100%" paddingLeft="6" paddingRight="6"/>				
+		</s:Group>		
+	</s:VGroup> 
+</s:SkinnablePopUpContainer>  

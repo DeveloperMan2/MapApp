@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					  xmlns:s="library://ns.adobe.com/flex/spark"
+					  xmlns:fxg="assets.fxg.*" 
+					  add="onAdd(event)">
+	<fx:Script>
+		<![CDATA[
+			import com.supermap.web.core.Feature;
+			
+			import mx.events.FlexEvent;
+			
+			import sm.mobile.jx.core.util.BaseUtil;
+			import sm.mobile.jx.core.util.GPSUtil;
+			import sm.mobile.jx.core.util.features.FeatureUtilManager;
+			import sm.mobile.jx.core.util.measure.ProjCalculus;
+			import sm.mobile.jx.event.YesCancelEvent;
+			[Bindable]
+			private var dm:DataManager = DataManager.getInstance();
+			
+			public var CLICKMODE:int = 0; /**0  点击详情，1点击关闭*/
+			[Bindable]
+			public var tempVo:Object = null;
+			
+			[Bindable]
+			private var fontSize:Number = 30;
+			
+			public var curFeature:Feature = null;
+			public var util:BaseUtil = null;
+			
+			protected function onAdd(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				fontSize = dm.multiResolution * 240 * 0.15 / 2.54;
+				
+				if(fName != null)
+				{
+					fName.text = "要素";
+				}
+				if(fAddress != null)
+				{	
+					fAddress.includeInLayout = true;
+					fAddress.text = "未知地址";
+				}	
+				else
+				{
+					fAddress.includeInLayout = false;
+				}
+				if(tempVo != null)
+				{
+					if(fName != null && tempVo.hasOwnProperty("name"))
+					{
+						fName.text = tempVo.name as String;
+					}
+					if(tempVo.hasOwnProperty("address") && fAddress != null)
+					{
+						fAddress.text = tempVo.address;
+					}
+					showDistInfo();
+				}									
+			}
+			protected function showDistInfo():void
+			{
+				if(fAddress != null && GPSUtil.checkNetState())
+				{	
+					var pt2:Point = null;
+					var pt1:Point = null;
+					var dist:String = null;
+					if(tempVo.hasOwnProperty("x") && tempVo.hasOwnProperty("y"))
+					{
+						pt2 = new Point(tempVo.x,tempVo.y);
+					}
+					
+					if(dm.nearFeatureVo != null)
+					{
+						if(isNaN(dm.nearFeatureVo.centerX) || isNaN(dm.nearFeatureVo.centerY))
+						{
+							return;
+						}						
+						pt1 = new Point(dm.nearFeatureVo.centerX,dm.nearFeatureVo.centerY);
+					}
+					
+					if(pt1 != null && pt2 != null)
+					{
+						dist = ProjCalculus.distVincenty(pt1,pt2).toFixed(1);
+					}
+					if(dist != null && fAddress != null)
+					{
+						fAddress.text += (" "+dist+"Km");
+					}					
+				}	
+			}
+			
+			protected function confirm_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var ev:YesCancelEvent = new YesCancelEvent(YesCancelEvent.CLICK_CONFIRM,true);				
+				if(dm.map != null)
+					dm.map.parentApplication.dispatchEvent(ev);						
+			}
+			protected function edit_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var ev:YesCancelEvent = new YesCancelEvent(YesCancelEvent.CLICK_EDIT,true);				
+				if(dm.map != null)
+					dm.map.parentApplication.dispatchEvent(ev);	
+			}
+			protected function cancel_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var ev:YesCancelEvent = new YesCancelEvent(YesCancelEvent.CLICK_CANCEL,true);				
+				if(dm.map != null)
+					dm.map.parentApplication.dispatchEvent(ev);	
+			}
+			
+			protected function quit_click(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var fm:FeatureUtilManager = FeatureUtilManager.getInstance();
+				CLICKMODE = 1;
+				if(fm.curUtil != null)
+				{
+					fm.curUtil.closeBtnClick(this.curFeature);
+				}
+			}	
+			
+			protected function content_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub			
+				CLICKMODE = 0;
+			}			
+		]]>
+	</fx:Script>
+	<s:Group id="info">		
+		<s:Rect width="100%" height="100%" radiusX="6" radiusY="6">
+			<s:fill>
+				<s:SolidColor color="#FFFFFF" alpha="0.95"/>
+			</s:fill>
+			<s:stroke>
+				<s:SolidColorStroke color="#DFDFDF"/>
+			</s:stroke>
+			<s:filters>
+				<s:DropShadowFilter quality="10" blurX="{dm.multiResolution*5}" blurY="{dm.multiResolution*5}" distance="{dm.multiResolution*10}" color="#CCCCCC" alpha="0.6" />					
+			</s:filters>
+		</s:Rect>
+		<s:HGroup height="100%" id="hbox"
+				  paddingBottom="{fontSize * 0.5}" paddingTop="{fontSize * 0.5}" 
+				  paddingLeft="{fontSize * 0.5}" paddingRight="{fontSize * 0.5}"
+				  verticalAlign="middle" horizontalAlign="center" gap="{fontSize * 0.5}">
+			<s:VGroup height="100%"  click="content_clickHandler(event)" id="content"
+					  verticalAlign="middle"  gap="{fontSize * 0.5}" >
+				<s:Label id="fName" fontSize="{fontSize * 1.25}" fontWeight="bold" />
+				<s:Label id="fAddress" color="#636363" fontSize="{fontSize}" />			
+			</s:VGroup>
+			<fxg:closeBtn click="quit_click(event)" top="6" width="{hbox.height * 0.6}" height="80%"/>
+			<!--<s:Button icon="{dm.iconAssembly.closeIcon}"  
+					  width="{dm.multiResolution*20}" height="{dm.multiResolution*20}"
+					  click="quit_click(event)" top="6" styleName="UserMenuButton" />	-->		
+		</s:HGroup>
+	</s:Group>
+</s:SkinnableContainer>

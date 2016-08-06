@@ -2,7 +2,7 @@ package com.util
 {
 	public class Coordinate
 	{
-		static var M_PI:Number=Math.PI;
+		public static var M_PI:Number=Math.PI;
 		//经纬度转墨卡托
 		// 经度(lon)，纬度(lat)		
 		public static function lon2Mercator(lon:Number):Number

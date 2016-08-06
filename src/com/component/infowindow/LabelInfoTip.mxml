@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					  xmlns:s="library://ns.adobe.com/flex/spark"
+					  xmlns:fxg="assets.fxg.*"
+					  add="onAdd(event)" currentState="TEXT">
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import sm.mobile.jx.core.util.features.FeatureUtilManager;
+			import sm.mobile.jx.core.util.measure.MeasureUtil;			
+			private var mu:MeasureUtil = FeatureUtilManager.getInstance().measureUtil;			
+			[Bindable]
+			private var dm:DataManager = DataManager.getInstance();
+			
+			[Bindable]
+			private var fontSize:Number = 30;
+			protected function onAdd(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(fName != null)
+				{
+					fName.text = this.name as String;
+				}		
+				fontSize = dm.multiResolution * 240 * 0.20 / 2.54;
+			}	
+			protected function quit_click(ev:MouseEvent):void
+			{
+				mu.backStep();
+			}
+			
+		]]>
+	</fx:Script>	
+	<s:states>
+		<s:State name="TEXT"/>
+		<s:State name="ICONTEXT"/>
+	</s:states>
+	<s:VGroup height="100%" 
+			  verticalAlign="middle" horizontalAlign="center"
+			  gap="12" >
+		<s:HGroup height="100%" id="content"
+				  paddingBottom="{fontSize * 0.5}" paddingTop="{fontSize * 0.5}" paddingLeft="{fontSize * 0.5}" paddingRight="{fontSize * 0.5}"
+				  verticalAlign="middle" horizontalAlign="center" gap="{fontSize * 0.5}">			
+			<s:Label id="fName" fontSize="{fontSize * 1.25 }" fontWeight="bold"/>
+			<fxg:closeBtn click="quit_click(event)" top="6" width="{content.height * 0.6 }" height="80%"/>
+			<!--<s:Button icon="{dm.iconAssembly.closeIcon}" click="quit_click(event)" top="6" styleName="UserMenuButton"/>-->
+		</s:HGroup>
+	</s:VGroup>
+</s:SkinnableContainer>
