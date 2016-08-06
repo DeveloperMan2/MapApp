@@ -24,10 +24,23 @@ package
 					MainVO.CachesRootPath
 				];				
 				
-				for each (var path:String in paths) 
+				/**在支持支持SDCard的设备上查找离线缓存-外置SD卡*/
+				if(RootDirectory.hasExtSDCard())
 				{
-					var file:File = RootDirectory.root.resolvePath(path);					
-					file.createDirectory();
+					for each (var extpath:String in paths) 
+					{
+						var extfile:File = RootDirectory.extSDCard.resolvePath(extpath);					
+						extfile.createDirectory();
+					}
+				}
+				else
+				{
+					/**在内置SD上查找离线缓存-内置SD卡*/
+					for each (var path:String in paths) 
+					{
+						var file:File = RootDirectory.root.resolvePath(path);					
+						file.createDirectory();
+					}
 				}
 			}
 		}

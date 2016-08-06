@@ -14,14 +14,8 @@ package
 	import com.vo.MainVO;
 	import com.vo.MapVO;
 	
-	import dpi.Dpi160;
-	import dpi.Dpi240;
-	import dpi.Dpi320;
-	import dpi.Dpi480;
-	
 	import flash.events.FileListEvent;
 	import flash.filesystem.File;
-	import flash.text.ReturnKeyLabel;
 	
 	import mx.collections.ArrayCollection;
 	import mx.core.IVisualElement;
@@ -31,6 +25,11 @@ package
 	import spark.transitions.CrossFadeViewTransition;
 	import spark.transitions.SlideViewTransition;
 	import spark.transitions.ViewTransitionBase;
+	
+	import dpi.Dpi160;
+	import dpi.Dpi240;
+	import dpi.Dpi320;
+	import dpi.Dpi480;
 	
 	/**系统数据管理类*/
 	[Bindable]
@@ -261,13 +260,16 @@ package
 		/**初始化App图层数据*/
 		public function initAppLayerCol():void
 		{
-			/**首先在默认路径寻找离线缓存，如果有SDCard则在对应的目录下找离线缓存*/
-			findOfflineMap(RootDirectory.root);
-			/**在三星设备上支持SDCard*/
+			/**在支持支持SDCard的设备上查找离线缓存-外置SD卡*/
 			if(RootDirectory.hasExtSDCard())
 			{
 				findOfflineMap(RootDirectory.extSDCard);
-			}			
+			}
+			else
+			{
+				/**在内置SD上查找离线缓存-内置SD卡*/
+				findOfflineMap(RootDirectory.root);
+			}
 		}
 		
 		//异步加载影像离线地图列表
