@@ -1,9 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		xmlns:s="library://ns.adobe.com/flex/spark" 
 		xmlns:supermap="http://www.supermap.com/mobile/2010"
+		xmlns:iconbutton="com.component.iconbutton.*"
 		actionBarVisible="true"
-		creationComplete="creationCompleteHandler(event)" xmlns:iconbutton="com.component.iconbutton.*">
+		creationComplete="creationCompleteHandler(event)" >
 	<fx:Script>
 		<![CDATA[
 			import com.vo.BrowseVO;
@@ -80,17 +81,17 @@
 		<s:VGroup height="100%" width="{300*dm.mapUIScale}" paddingLeft="5" paddingRight="5"
 				  horizontalAlign="right" verticalAlign="top">
 			<s:HGroup width="100%" gap="6" horizontalAlign="left" verticalAlign="middle">
-				<s:Label text="名称:"/>
+				<s:Label text="���:"/>
 				<s:TextInput id="dataKeyWord"
 							 width="100%"/>
 			</s:HGroup>
 			<s:HGroup width="100%" gap="6" horizontalAlign="left" verticalAlign="middle">
-				<s:Label text="范围:"/>
+				<s:Label text="��Χ:"/>
 				<s:TextInput id="dataRange"
 							 width="100%"/>
 			</s:HGroup>	
 			<s:HGroup width="100%" gap="6" horizontalAlign="left" verticalAlign="middle">
-				<s:Label text="查询到2条记录" width="100%"/>
+				<s:Label text="��ѯ��2����¼" width="100%"/>
 				<s:Button id="searchBtn" height="{48*dm.multiResolution}"
 						  icon="{dm.iconAssembly.searchIcon}" 
 						  iconPlacement="left"/>
