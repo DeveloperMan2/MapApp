@@ -11,21 +11,20 @@ package com.util
 	{		
 		/**离线读写数据库*/
 		public static var root:File = File.documentsDirectory;
-//		public static var root:File = File.userDirectory;
 		/**离线大型地图缓存路径*/
 		public static var extSDCard:File = File.documentsDirectory;
-//		public static var extSDCard:File = File.userDirectory;
 		
 		public function RootDirectory()
 		{			
+			
 		}	
 		
 		public static function findOfflineDB():Boolean
 		{
 			/**离线数据存放的路径*/
 			var paths:Array = [
-				File.documentsDirectory.nativePath,
-				"/sdcard",				
+				"/storage/emulated/0",
+				"/sdcard",	
 				"/storage/sdcard"];
 			for each(var path:String in paths)
 			{
@@ -72,8 +71,8 @@ package com.util
 		
 		public static function hasExtSDCard():Boolean
 		{
-			var paths:Array = [
-				"/storage/extSdCard"];
+			var paths:Array = ["/storage/sdcard1","/mnt/external",
+				"/storage/extSdCard","/storage/emulated/1"];
 			for each(var path:String in paths)
 			{
 				var fi:File = new File(path);

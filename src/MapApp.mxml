@@ -25,6 +25,14 @@
 				//初始化系统目录
 				var initDirectory:SystemInit = new SystemInit();
 				initDirectory.initSystemDirectory(true);
+				
+				trace(File.applicationDirectory.nativePath);
+				trace(File.applicationStorageDirectory.nativePath);
+				trace(File.cacheDirectory.nativePath);
+				trace(File.desktopDirectory.nativePath);
+				trace(File.documentsDirectory.nativePath);
+				trace(File.userDirectory.nativePath);
+				trace(File.createTempDirectory().nativePath);
 			}
 			
 		]]>
