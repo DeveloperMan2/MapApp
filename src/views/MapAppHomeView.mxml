@@ -13,8 +13,8 @@
 			import com.vo.BrowseVO;
 			import com.vo.MainVO;
 			
-			import mx.core.FlexGlobals;
 			import mx.collections.ArrayCollection;
+			import mx.core.FlexGlobals;
 			import mx.events.FlexEvent;
 			import mx.events.ResizeEvent;
 			import mx.utils.StringUtil;
@@ -28,7 +28,7 @@
 			[Bindable]
 			private var dm:DataManager = DataManager.getInstance();
 			
-			private var tMake:Timer = null;
+//			private var tMake:Timer = null;
 			
 			/**定义关键字查询对象*/
 			private var queryUtil:QueryUtil;
@@ -37,12 +37,12 @@
 			{
 				dm.initMap(this.map);
 				
-				if(tMake == null)
-				{
-					tMake = new Timer(100);
-					tMake.addEventListener(TimerEvent.TIMER, loadMbLayerHandler);
+//				if(tMake == null)
+//				{
+//					tMake = new Timer(100);
+//					tMake.addEventListener(TimerEvent.TIMER, loadMbLayerHandler);
 //					tMake.start();
-				}
+//				}
 				
 				dm.addTdtLayer();
 				
@@ -54,47 +54,39 @@
 				var destinaQueryDbFile:File = RootDirectory.extSDCard.resolvePath(destinaPath);
 				if (destinaQueryDbFile.exists == false) {
 					var originQueryDbFile:File = File.applicationDirectory.resolvePath(MainVO.QueryOriginPath+File.separator+ MainVO.QueryDBFileName);
-				
-//					var destinaParentFile:File = File.documentsDirectory.resolvePath(destinaQueryDbFile.parent);
 					destinaQueryDbFile.parent.createDirectory();
-					
-//					var file:File = File.documentsDirectory.resolvePath( MainVO.DataCacheRootPath);
-//					file.createDirectory();
-					
-//					var dbFile:File =  File.documentsDirectory.resolvePath(destinaParentFile);
 					originQueryDbFile.copyTo(destinaQueryDbFile,true);
 				}
-				
-				queryUtil = new QueryUtil(destinaPath);
+				queryUtil = new QueryUtil(destinaQueryDbFile.nativePath);
 				queryUtil.open();
 			}
 			
 			private function loadMbLayerHandler(event:TimerEvent):void
 			{
-				dm.initAppLayerCol();
-				
-				if(dm.ImgLayerArrCol != null && dm.ImgLayerArrCol.length > 0)
-				{
-					var bVo:BrowseVO = dm.ImgLayerArrCol.getItemAt(0) as BrowseVO;
+//				dm.initAppLayerCol();
+//				
+//				if(dm.ImgLayerArrCol != null && dm.ImgLayerArrCol.length > 0)
+//				{
+//					var bVo:BrowseVO = dm.ImgLayerArrCol.getItemAt(0) as BrowseVO;
+//					
+//					if(bVo != null)
+//					{
+//						dm.addMbLayer(bVo);
+//					}
 					
-					if(bVo != null)
-					{
-						dm.addMbLayer(bVo);
-					}
-					
-					tMake.stop();
-					tMake.removeEventListener(TimerEvent.TIMER, loadMbLayerHandler);
-					tMake = null;
-					
-					this.mbLayerNameList.dataProvider = dm.ImgLayerArrCol;
-					this.mbLayerNameList.labelField = "layerName";
-				}
+//					tMake.stop();
+//					tMake.removeEventListener(TimerEvent.TIMER, loadMbLayerHandler);
+//					tMake = null;
+//					
+//					this.mbLayerNameList.dataProvider = dm.ImgLayerArrCol;
+//					this.mbLayerNameList.labelField = "layerName";
+//				}
 			}
 			
-			protected function mbLayerNameList_changeHandler(event:IndexChangeEvent):void
+			protected function mbLayerNameList_changeHandler(event:Event):void
 			{
 				// TODO Auto-generated method stub
-				var bVo:BrowseVO = this.mbLayerNameList.selectedItem as BrowseVO;
+				var bVo:Object = this.mbLayerNameList.selectedItem;
 				if(bVo != null)
 				{
 					dm.addMbLayer(bVo);
@@ -255,7 +247,7 @@
 			<s:List id="mbLayerNameList" width="100%" height="100%"
 					requireSelection="false" selectedIndex="0"
 					textAlign="left"  labelField="name"
-					change="mbLayerNameList_changeHandler(event)">							
+					click="mbLayerNameList_changeHandler(event)">							
 			</s:List>
 		</s:VGroup>
 	</s:Group>

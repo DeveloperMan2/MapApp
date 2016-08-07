@@ -14,11 +14,6 @@ package
 	import com.vo.MainVO;
 	import com.vo.MapVO;
 	
-	import dpi.Dpi160;
-	import dpi.Dpi240;
-	import dpi.Dpi320;
-	import dpi.Dpi480;
-	
 	import flash.events.FileListEvent;
 	import flash.filesystem.File;
 	
@@ -30,6 +25,11 @@ package
 	import spark.transitions.CrossFadeViewTransition;
 	import spark.transitions.SlideViewTransition;
 	import spark.transitions.ViewTransitionBase;
+	
+	import dpi.Dpi160;
+	import dpi.Dpi240;
+	import dpi.Dpi320;
+	import dpi.Dpi480;
 	
 	/**系统数据管理类*/
 	[Bindable]
@@ -138,23 +138,16 @@ package
 			appIconSize = appIconSize*appIconScale;
 			appFontSize = appFontSize*appIconScale;
 			
-			//初始化地图分辨率
-			var resolutions:Array = [];
-			for(var i:int=-1 ; i<=15;i++){
-				resolutions.push(156543.0339/2/Math.pow(2,i));
-			}
-			map.resolutions = resolutions;
 		}
 		
 		/**
 		 *初始化地图 
 		 * @param map
-		 * 
 		 */
 		public function initMap(map:Map):void
 		{
 			var resolutions:Array = [];
-			for(var i:int=-1 ; i<=15;i++){
+			for(var i:int=-1 ; i<=18;i++){
 				resolutions.push(156543.0339/2/Math.pow(2,i));
 			}
 			map.resolutions = resolutions;
@@ -186,18 +179,19 @@ package
 		 * @param layVo
 		 * 
 		 */
-		public function addMbLayer(bVo:BrowseVO):void
+		public function addMbLayer(bVo:Object):void
 		{
+			var layerUrl:String =  RootDirectory.extSDCard.resolvePath(MainVO.MbMapsRootPath+bVo.path).nativePath; 
 			if(this.imageBaseLayer != null)
 			{
-				(this.imageBaseLayer as MBTilesLayerEx).mbtilesPath = bVo.layerUrl; 
+				(this.imageBaseLayer as MBTilesLayerEx).mbtilesPath =layerUrl
 				this.map.refresh();
 			}
 			else
 			{
 				var mbtilesLayer:MBTilesLayerEx;
 				mbtilesLayer = new MBTilesLayerEx();
-				mbtilesLayer.mbtilesPath = bVo.layerUrl; 
+				mbtilesLayer.mbtilesPath = layerUrl;
 				mbtilesLayer.bounds = this.getMapBounds(116.091343, 29.738883, 116.209089, 29.760974);
 				mbtilesLayer.origin = new Point2D(-20037508.3392, 20037508.3392);
 				this.map.addLayer(mbtilesLayer);
@@ -228,16 +222,14 @@ package
 			tdtLabelLayer.isLabel = true;
 			map.addLayer(tdtLabelLayer);
 			
-			
-			
 			this.vectorBaseLayer = tdtLayer;
 			this.vectorLabelBaseLayer = tdtLabelLayer;
 			
-			var mbtilesLayer:MBTilesLayerEx = new MBTilesLayerEx();
-			mbtilesLayer.mbtilesPath = "/storage/sdcard1/outsd/mappng15.mbtiles";
-			mbtilesLayer.bounds =  new Rectangle2D(Coordinate.lon2Mercator(116.091343), Coordinate.lat2Mercator(29.738883), Coordinate.lon2Mercator(116.209089),Coordinate.lat2Mercator(29.760974));
-			mbtilesLayer.origin = new Point2D(-20037508.3392, 20037508.3392);
-			map.addLayer(mbtilesLayer);
+//			var mbtilesLayer:MBTilesLayerEx = new MBTilesLayerEx();
+//			mbtilesLayer.mbtilesPath = "/storage/sdcard1/outsd/mappng15.mbtiles";
+//			mbtilesLayer.bounds =  new Rectangle2D(Coordinate.lon2Mercator(116.091343), Coordinate.lat2Mercator(29.738883), Coordinate.lon2Mercator(116.209089),Coordinate.lat2Mercator(29.760974));
+//			mbtilesLayer.origin = new Point2D(-20037508.3392, 20037508.3392);
+//			map.addLayer(mbtilesLayer);
 		}
 		
 		/**视图切换特效*/

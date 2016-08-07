@@ -81,7 +81,7 @@ package com.util
 				stmtTemp.execute();
 				result = stmtTemp.getResult();
 				data = result.data;
-				if (data != null && data.length == 1)
+				if (data != null && data.length > 0)
 				{		
 					return data as Array;
 				}

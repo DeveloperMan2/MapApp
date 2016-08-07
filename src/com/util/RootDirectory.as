@@ -11,14 +11,33 @@ package com.util
 	{		
 		/**离线读写数据库*/
 		public static var root:File = File.documentsDirectory;
-		/**离线大型地图缓存路径*/
-		public static var extSDCard:File = File.documentsDirectory;
+		private static var _extSDCard:File = null;
 		
 		public function RootDirectory()
 		{			
 			
 		}	
 		
+		/**离线大型地图缓存路径*/
+		public static function get extSDCard():File
+		{
+			if (_extSDCard == null) {
+				_extSDCard = File.documentsDirectory;
+				var paths:Array = ["/storage/sdcard1","/mnt/external",
+					"/storage/extSdCard","/storage/emulated/1"];
+				for each(var path:String in paths)
+				{
+					var fi:File = new File(path);
+					if(fi.exists && fi.isDirectory && !fi.isSymbolicLink)
+					{
+						_extSDCard.nativePath = path;
+					}
+				}
+			} 
+			
+			return _extSDCard;
+		}
+
 		public static function findOfflineDB():Boolean
 		{
 			/**离线数据存放的路径*/
@@ -69,7 +88,7 @@ package com.util
 			return flag;
 		}
 		
-		public static function hasExtSDCard():Boolean
+		private static function hasExtSDCard():Boolean
 		{
 			var paths:Array = ["/storage/sdcard1","/mnt/external",
 				"/storage/extSdCard","/storage/emulated/1"];
