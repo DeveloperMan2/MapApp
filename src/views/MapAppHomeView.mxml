@@ -6,6 +6,8 @@
 		creationComplete="creationCompleteHandler(event)">
 	<fx:Script>
 		<![CDATA[
+			import com.supermap.web.core.Rectangle2D;
+			import com.util.Coordinate;
 			import com.vo.BrowseVO;
 			
 			import mx.events.FlexEvent;
@@ -30,7 +32,7 @@
 				
 				dm.addTdtLayer();
 				
-				dm.resetMapPosition();
+				dm.resetMapPosition(116.091343, 29.738883, 116.209089, 29.760974);
 			}
 			
 			private function loadMbLayerHandler(event:TimerEvent):void
@@ -62,8 +64,30 @@
 				if(bVo != null)
 				{
 					dm.addMbLayer(bVo);
-					dm.resetMapPosition();
+					dm.resetMapPosition(116.091343, 29.738883, 116.209089, 29.760974);
 				}
+			}
+			
+			/**全幅*/
+			protected function fullMapBtn_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				//this.map.viewEntire();
+				dm.resetMapPosition(116.091343, 29.738883, 116.209089, 29.760974);
+			}
+			
+			/**放大*/
+			protected function zoomInBtn_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.map.zoomIn();
+			}
+			
+			/**缩小*/
+			protected function zoomOutBtn_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.map.zoomOut();
 			}
 			
 		]]>
@@ -114,10 +138,10 @@
 	<s:VGroup id="toolGroup" height="100%" right="12" gap="12"
 			  horizontalAlign="right" verticalAlign="middle">
 		<s:Button id="fullMapBtn" 
-				  icon="{dm.iconAssembly.fullIcon}" styleName="OperationButton"/>	
+				  icon="{dm.iconAssembly.fullIcon}" styleName="OperationButton" click="fullMapBtn_clickHandler(event)"/>	
 		<s:Button id="zoomInBtn" 
-				  icon="{dm.iconAssembly.zoomInIcon}" styleName="OperationButton"/>
+				  icon="{dm.iconAssembly.zoomInIcon}" styleName="OperationButton" click="zoomInBtn_clickHandler(event)"/>
 		<s:Button id="zoomOutBtn" 
-				  icon="{dm.iconAssembly.zoomOutIcon}" styleName="OperationButton"/>
+				  icon="{dm.iconAssembly.zoomOutIcon}" styleName="OperationButton" click="zoomOutBtn_clickHandler(event)"/>
 	</s:VGroup>
 </s:View>
