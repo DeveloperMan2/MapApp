@@ -55,6 +55,11 @@ package
 			}
 		}	
 		
+		/**系统默认的离线影像数据目录*/
+		public var defaultMbTilesDir:File = null;
+		/**用户设定的离线影像数据目录*/
+		public var customMbTilesDir:File = null;
+		
 		/** iOS预读数据状态 
 		 * Android设备上值为0.
 		 * iOS设备默认为-1，
@@ -260,25 +265,27 @@ package
 		/**初始化App图层数据*/
 		public function initAppLayerCol():void
 		{
+			var directory:File = null;
 			/**在支持支持SDCard的设备上查找离线缓存-外置SD卡*/
 			if(RootDirectory.hasExtSDCard())
 			{
-				findOfflineMap(RootDirectory.extSDCard);
+				directory = RootDirectory.extSDCard.resolvePath(MainVO.MbMapsRootPath); 
 			}
 			else
 			{
 				/**在内置SD上查找离线缓存-内置SD卡*/
-				findOfflineMap(RootDirectory.root);
+				directory = RootDirectory.root.resolvePath(MainVO.MbMapsRootPath); 
 			}
+			findOfflineMap(directory);
 		}
 		
 		//异步加载影像离线地图列表
-		private function findOfflineMap(_directory:File):void{
-			var directory:File = _directory.resolvePath(MainVO.MbMapsRootPath); 
-			if(directory.exists)
+		public function findOfflineMap(_directory:File):void{
+			if(_directory.exists)
 			{
-				directory.getDirectoryListingAsync(); 
-				directory.addEventListener(FileListEvent.DIRECTORY_LISTING, dirImageLayerListHandler); 
+				this.defaultMbTilesDir = _directory;
+				_directory.getDirectoryListingAsync(); 
+				_directory.addEventListener(FileListEvent.DIRECTORY_LISTING, dirImageLayerListHandler); 
 			}
 		}
 		

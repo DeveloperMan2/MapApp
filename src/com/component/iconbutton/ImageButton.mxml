@@ -16,7 +16,7 @@
 			public var text:String; 
 			
 			[Bindable]
-			public var url:String; 
+			public var url:Object; 
 			
 			private var _param:Object={};
 			
@@ -29,19 +29,21 @@
 			{
 				_param = value;
 			}
-			
 		]]>
 	</fx:Script>
-	<s:Rect width="100%" height="100%" radiusX="3" radiusY="3">
+	<s:Rect width="100%" height="100%" radiusX="0" radiusY="0">
 		<s:stroke>
-			<s:SolidColorStroke color="#D6D6D6" weight="3"/>
+			<s:SolidColorStroke color="#000000" weight="2"/>
 		</s:stroke>
 	</s:Rect>
-	<s:VGroup width="100%" height="100%" horizontalAlign="center" verticalAlign="middle">
+	<s:VGroup width="100%" height="100%" 
+			  horizontalAlign="center" verticalAlign="middle"
+			  paddingLeft="5" paddingRight="5"
+			  paddingTop="5" paddingBottom="5">
 		<s:Image source="{url}" width="{imageWidth}" height="{imageHeight}" 
 				 fillMode="scale" scaleMode="zoom" smooth="true"/>
 		<s:Label text="{text}"
-				 width="100%" color="#FFFFFF"
+				 width="100%"
 				 textAlign="center" verticalAlign="middle"/>
 	</s:VGroup>
 </s:Group>
