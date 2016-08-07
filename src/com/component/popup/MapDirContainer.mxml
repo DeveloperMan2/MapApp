@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:SkinnablePopUpContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
 						   xmlns:s="library://ns.adobe.com/flex/spark" 
-						   backgroundAlpha="1" backgroundColor="0xFFFFFF"  
+						   backgroundAlpha="0.8" backgroundColor="0xFFFFFF"  
 						   creationComplete="initHandler(event)"
 						   resize="resizeHandler(event)">
 	
@@ -28,13 +28,15 @@
 			{
 				if(f != null)
 				{
+					this.queryInfoGroup.visible = true;
+					this.queryInfoGroup.includeInLayout = true;
+					
 					dm.customMbTilesDir = f;
 					this.currentDirPath.text = f.nativePath;
 					var temp:Array = f.nativePath.split("/");
 					var dirName:String = temp[temp.length-1];
 					if(dirName == "")
 					{
-						dirName = "手机目录";
 						this.currentState = ROOTSTATE;
 					}
 					else
@@ -59,6 +61,9 @@
 						}
 					}
 				}
+				
+				this.queryInfoGroup.visible = false;
+				this.queryInfoGroup.includeInLayout = false;
 			}
 			
 			/**设置本地图片数据源-PhotoView, PhotoGroupView*/
@@ -124,6 +129,9 @@
 				}
 				
 				this.closeDirInfo([dm.defaultMbTilesDir, dm.customMbTilesDir]);
+				
+				//实时刷新列表
+				dm.findOfflineMap(dm.customMbTilesDir);
 			}
 			
 			/**计算行数*/
@@ -147,13 +155,7 @@
 			
 			protected function resetBtn_clickHandler(event:MouseEvent):void
 			{
-				//获取初始化路径
-				if(dm.defaultMbTilesDir != null)
-				{
-					dm.findOfflineMap(dm.defaultMbTilesDir);
-					
-					this.getDirInfo(dm.defaultMbTilesDir);
-				}
+				this.getDirInfo(dm.defaultMbTilesDir);
 			}
 			
 			protected function returnLastDir_clickHandler(event:MouseEvent):void
@@ -166,13 +168,13 @@
 				}
 			}
 			
-			protected function confirmBtn_clickHandler(event:MouseEvent):void
+			/*protected function confirmBtn_clickHandler(event:MouseEvent):void
 			{
 				if(dm.customMbTilesDir != null)
 				{
 					dm.findOfflineMap(dm.customMbTilesDir);
 				}
-			}
+			}*/
 			
 		]]>
 	</fx:Script>
@@ -185,8 +187,8 @@
 		<s:HGroup width="100%" height="{48*dm.multiResolution}" gap="0">
 			<s:Label text="当前目录：" height="100%" verticalAlign="middle"/>
 			<s:Label id="currentDirPath" text="请选择离线地图存放目录"  verticalAlign="middle" width="100%" height="100%"/>
-			<s:Button id="confirmBtn" label="确定" width="{72*dm.multiResolution}" height="100%" click="confirmBtn_clickHandler(event)"/>
-			<s:Button id="resetBtn" label="重置" width="{72*dm.multiResolution}" height="100%" click="resetBtn_clickHandler(event)"/>
+			<s:Button id="resetBtn" label="重置目录" width="{144*dm.multiResolution}" height="100%" click="resetBtn_clickHandler(event)"/>
+			<!--<s:Button id="confirmBtn" label="确定目录" width="{124*dm.multiResolution}" height="100%" click="confirmBtn_clickHandler(event)"/>-->
 		</s:HGroup>
 		<s:Rect width="100%" height="2">
 			<s:fill>
@@ -194,7 +196,11 @@
 			</s:fill>
 		</s:Rect>
 		<s:HGroup width="100%" height="{48*dm.multiResolution}" 
-				  horizontalAlign="right" verticalAlign="middle" includeIn="SubState">
+				  horizontalAlign="right" verticalAlign="middle" includeIn="SubState" itemCreationPolicy="immediate">
+			<s:HGroup id="queryInfoGroup" width="100%" height="100%" horizontalAlign="left">
+				<s:Label text="正在查询..." height="100%" verticalAlign="middle"/>
+				<s:BusyIndicator symbolColor="#ff0000" width="{48*dm.multiResolution}" height="{48*dm.multiResolution}"/>
+			</s:HGroup>
 			<s:Button id="returnLastDir" label="返回上一级" width="{136*dm.multiResolution}" height="100%"
 					  click="returnLastDir_clickHandler(event)"/>
 		</s:HGroup>
