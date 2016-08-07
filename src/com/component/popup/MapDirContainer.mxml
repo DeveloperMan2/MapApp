@@ -23,6 +23,44 @@
 			/**相片项目高度-PhotoView*/
 			public var dirItemHeight:Number = 148 * dm.multiResolution;
 			
+			/**获取文件目录信息*/
+			private function getDirInfo(f:File):void
+			{
+				if(f != null)
+				{
+					dm.customMbTilesDir = f;
+					this.currentDirPath.text = f.nativePath;
+					var temp:Array = f.nativePath.split("/");
+					var dirName:String = temp[temp.length-1];
+					if(dirName == "")
+					{
+						dirName = "手机目录";
+						this.currentState = ROOTSTATE;
+					}
+					else
+					{
+						this.currentState = SUBSTATE;
+					}
+					f.getDirectoryListingAsync(); 
+					f.addEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
+				}
+			}
+			
+			/**终端文件目录信息获取*/
+			private function closeDirInfo(fs:Array):void
+			{
+				if(fs != null && fs.length > 0)
+				{ 
+					for each(var f:File in fs)
+					{
+						if(f != null && f.hasEventListener(FileListEvent.DIRECTORY_LISTING))
+						{
+							f.removeEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
+						}
+					}
+				}
+			}
+			
 			/**设置本地图片数据源-PhotoView, PhotoGroupView*/
 			public function dirGenerator(tileGroup:TileGroup, dirCol:ArrayCollection, fn:Function=null):void
 			{
@@ -32,21 +70,12 @@
 				{
 					for each (var f:File in dirCol) 
 					{
+						var temp:Array = f.nativePath.split("/");
+						var dirName:String = temp[temp.length-1];
 						if(f.isDirectory)
 						{
 							var dirGroup:ImageButton = new ImageButton();
 							dirGroup.url = dm.iconAssembly.dirIcon;
-							var temp:Array = f.nativePath.split("/");
-							var dirName:String = temp[temp.length-1];
-							if(dirName == "")
-							{
-								dirName = "手机目录";
-								this.currentState = ROOTSTATE;
-							}
-							else
-							{
-								this.currentState = SUBSTATE;
-							}
 							dirGroup.text = dirName;
 							dirGroup.width = dirItemWidth;
 							dirGroup.height = dirItemHeight;
@@ -56,16 +85,12 @@
 								dirGroup.addEventListener(MouseEvent.CLICK, fn);
 							}
 							tileGroup.addElement(dirGroup);
-							
-							this.currentDirPath.text = f.nativePath;
 						}
 						else
 						{
 							var fileItem:ImageButton = new ImageButton();
 							fileItem.url = dm.iconAssembly.fileIcon;
-							var tempf:Array = f.nativePath.split("/");
-							var dirNamef:String = tempf[tempf.length-1];
-							fileItem.text = dirNamef;
+							fileItem.text = dirName;
 							fileItem.width = dirItemWidth;
 							fileItem.height = dirItemHeight;
 							tileGroup.addElement(fileItem);
@@ -76,20 +101,7 @@
 			
 			protected function initHandler(event:FlexEvent):void
 			{
-				var rootDir:Array = File.getRootDirectories();
-				if(rootDir != null && rootDir.length > 0)
-				{
-					this.dirGenerator(dirGroup, new ArrayCollection(rootDir), dirGroupClickHandler);
-				}
-				
-				//获取初始化路径
-				if(dm.defaultMbTilesDir != null)
-				{
-					this.currentDirPath.text = dm.defaultMbTilesDir.nativePath;
-					dm.defaultMbTilesDir.getDirectoryListingAsync(); 
-					dm.defaultMbTilesDir.addEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
-					dm.customMbTilesDir = dm.defaultMbTilesDir;
-				}
+				this.getDirInfo(dm.defaultMbTilesDir);
 			}
 			
 			/**点击文件夹图标*/
@@ -99,13 +111,7 @@
 				if(imgBtn != null && imgBtn.param != null)
 				{
 					var f:File = imgBtn.param as File;
-					if(f != null && f.isDirectory)
-					{
-						this.currentDirPath.text = f.nativePath;
-						f.getDirectoryListingAsync(); 
-						f.addEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
-						dm.customMbTilesDir = f;
-					}
+					this.getDirInfo(f);
 				}
 			}
 			
@@ -116,15 +122,13 @@
 				{
 					this.dirGenerator(dirGroup, new ArrayCollection(rootDir), dirGroupClickHandler);
 				}
+				
+				this.closeDirInfo([dm.defaultMbTilesDir, dm.customMbTilesDir]);
 			}
 			
 			/**计算行数*/
 			private function calcuteColumnCount():void
 			{
-				/*var dirGroupHeight:Number = this.height - 2*(48*dm.multiResolution)- 10;
-				dirGroup.height = dirGroupHeight;
-				dirGroup.requestedRowCount = parseInt(dirGroupHeight/dirItemHeight);*/
-				
 				this.dirScroller.width = this.width - 10;
 				var dirGroupWidth:Number = this.width - 10 - 20;
 				dirGroup.width = dirGroupWidth;
@@ -146,12 +150,9 @@
 				//获取初始化路径
 				if(dm.defaultMbTilesDir != null)
 				{
-					this.currentDirPath.text = dm.defaultMbTilesDir.nativePath;
 					dm.findOfflineMap(dm.defaultMbTilesDir);
 					
-					dm.defaultMbTilesDir.getDirectoryListingAsync(); 
-					dm.defaultMbTilesDir.addEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
-					dm.customMbTilesDir = dm.defaultMbTilesDir;
+					this.getDirInfo(dm.defaultMbTilesDir);
 				}
 			}
 			
@@ -161,13 +162,7 @@
 				if(dm.customMbTilesDir != null && dm.customMbTilesDir.parent != null)
 				{
 					var f:File = dm.customMbTilesDir.parent;
-					if(f != null && f.isDirectory)
-					{
-						this.currentDirPath.text = f.nativePath;
-						f.getDirectoryListingAsync(); 
-						f.addEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
-						dm.customMbTilesDir = f;
-					}
+					this.getDirInfo(f);
 				}
 			}
 			
@@ -203,7 +198,7 @@
 			<s:Button id="returnLastDir" label="返回上一级" width="{136*dm.multiResolution}" height="100%"
 					  click="returnLastDir_clickHandler(event)"/>
 		</s:HGroup>
-		<s:Scroller id="dirScroller" width="100%" height="100%"
+		<s:Scroller id="dirScroller" height="100%"
 					horizontalScrollPolicy="off" verticalScrollPolicy="on">
 			<s:VGroup width="100%" height="100%" gap="0"
 					  horizontalAlign="center"

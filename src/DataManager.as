@@ -273,17 +273,22 @@ package
 		/**初始化App图层数据*/
 		public function initAppLayerCol():void
 		{
-			var directory:File = null;
-			/**在支持支持SDCard的设备上查找离线缓存-外置SD卡*/
-			if(RootDirectory.hasExtSDCard())
-			{
-				directory = RootDirectory.extSDCard.resolvePath(MainVO.MbMapsRootPath); 
-			}
-			else
-			{
-				/**在内置SD上查找离线缓存-内置SD卡*/
-				directory = RootDirectory.root.resolvePath(MainVO.MbMapsRootPath); 
-			}
+//			var directory:File = null;
+//			/**在支持支持SDCard的设备上查找离线缓存-外置SD卡*/
+//			if(RootDirectory.hasExtSDCard())
+//			{
+//				//此处存在外置SD卡访问的写权限问题
+//				directory = RootDirectory.extSDCard.resolvePath(MainVO.MbMapsRootPath); 
+//			}
+//			else
+//			{
+//				/**在内置SD上查找离线缓存-内置SD卡*/
+//				directory = RootDirectory.root.resolvePath(MainVO.MbMapsRootPath); 
+//			}
+//			findOfflineMap(directory);
+			
+			//直接访问内置SD卡
+			var directory:File = RootDirectory.root.resolvePath(MainVO.MbMapsRootPath); 
 			findOfflineMap(directory);
 		}
 		
