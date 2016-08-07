@@ -34,7 +34,10 @@ package com.mapping
 		
 		public function open() : Boolean
 		{
-			var dbfile:File
+			var dbfile:File;
+//			if (_dbFilePath.search(":") != -1) {
+//				dbfile = File.documentsDirectory.resolvePath(
+//			}
 			dbfile = File.documentsDirectory.resolvePath(this._dbFilePath);
 			this.dbConn = new SQLConnection();
 			try

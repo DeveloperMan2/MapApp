@@ -21,7 +21,6 @@ package
 	
 	import flash.events.FileListEvent;
 	import flash.filesystem.File;
-	import flash.text.ReturnKeyLabel;
 	
 	import mx.collections.ArrayCollection;
 	import mx.core.IVisualElement;
@@ -161,9 +160,9 @@ package
 		 *获取地图位置 
 		 * 
 		 */
-		public function getMapBounds():Rectangle2D
+		public function getMapBounds(l:Number,b:Number,r:Number,t:Number):Rectangle2D
 		{
-			var rect2d:Rectangle2D = new Rectangle2D(Coordinate.lon2Mercator(116.091343), Coordinate.lat2Mercator(29.738883), Coordinate.lon2Mercator(116.209089),Coordinate.lat2Mercator(29.760974));
+			var rect2d:Rectangle2D = new Rectangle2D(Coordinate.lon2Mercator(l), Coordinate.lat2Mercator(b), Coordinate.lon2Mercator(r),Coordinate.lat2Mercator(t));
 			
 			return rect2d;
 		}
@@ -172,9 +171,9 @@ package
 		 *重置地图位置 
 		 * 
 		 */
-		public function resetMapPosition():void
+		public function resetMapPosition(l:Number,b:Number,r:Number,t:Number):void
 		{
-			this.map.viewBounds = this.getMapBounds();
+			this.map.viewBounds = this.getMapBounds(l,b,r,t);
 		}
 		
 		/**
@@ -194,7 +193,7 @@ package
 				var mbtilesLayer:MBTilesLayerEx;
 				mbtilesLayer = new MBTilesLayerEx();
 				mbtilesLayer.mbtilesPath = bVo.layerUrl; 
-				mbtilesLayer.bounds = this.getMapBounds();
+				mbtilesLayer.bounds = this.getMapBounds(116.091343, 29.738883, 116.209089, 29.760974);
 				mbtilesLayer.origin = new Point2D(-20037508.3392, 20037508.3392);
 				this.map.addLayer(mbtilesLayer);
 				this.imageBaseLayer = mbtilesLayer;
@@ -224,8 +223,16 @@ package
 			tdtLabelLayer.isLabel = true;
 			map.addLayer(tdtLabelLayer);
 			
+			
+			
 			this.vectorBaseLayer = tdtLayer;
 			this.vectorLabelBaseLayer = tdtLabelLayer;
+			
+			var mbtilesLayer:MBTilesLayerEx = new MBTilesLayerEx();
+			mbtilesLayer.mbtilesPath = "/storage/sdcard1/outsd/mappng15.mbtiles";
+			mbtilesLayer.bounds =  new Rectangle2D(Coordinate.lon2Mercator(116.091343), Coordinate.lat2Mercator(29.738883), Coordinate.lon2Mercator(116.209089),Coordinate.lat2Mercator(29.760974));
+			mbtilesLayer.origin = new Point2D(-20037508.3392, 20037508.3392);
+			map.addLayer(mbtilesLayer);
 		}
 		
 		/**视图切换特效*/
@@ -261,13 +268,16 @@ package
 		/**初始化App图层数据*/
 		public function initAppLayerCol():void
 		{
-			/**首先在默认路径寻找离线缓存，如果有SDCard则在对应的目录下找离线缓存*/
-			findOfflineMap(RootDirectory.root);
-			/**在三星设备上支持SDCard*/
+			/**在支持支持SDCard的设备上查找离线缓存-外置SD卡*/
 			if(RootDirectory.hasExtSDCard())
 			{
 				findOfflineMap(RootDirectory.extSDCard);
-			}			
+			}
+			else
+			{
+				/**在内置SD上查找离线缓存-内置SD卡*/
+				findOfflineMap(RootDirectory.root);
+			}
 		}
 		
 		//异步加载影像离线地图列表
