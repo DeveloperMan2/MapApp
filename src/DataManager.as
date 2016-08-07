@@ -9,6 +9,7 @@ package
 	import com.supermap.web.mapping.TiledCachedLayer;
 	import com.util.AppEvent;
 	import com.util.Coordinate;
+	import com.util.QueryUtil;
 	import com.util.RootDirectory;
 	import com.util.SystemConfigUtil;
 	import com.vo.BrowseVO;
@@ -442,6 +443,23 @@ package
 				systemConfigUtil.open();
 			}
 			return systemConfigUtil.queryMbtilesFolderPath();
+		}
+		
+		/**初始化，关键字查询对象*/
+		public function getQueryUtil():QueryUtil
+		{
+			//复制查询使用的数据库 , 判断文件是否存在，不存在进行复制操作
+			var destinaPath:String = MainVO.DataCacheRootPath + MainVO.QueryDBFileName;
+			var destinaQueryDbFile:File = RootDirectory.extSDCard.resolvePath(destinaPath);
+			if (destinaQueryDbFile.exists == false) {
+				var originQueryDbFile:File = File.applicationDirectory.resolvePath(MainVO.OriginDBPath+MainVO.QueryDBFileName);
+				destinaQueryDbFile.parent.createDirectory();
+				originQueryDbFile.copyTo(destinaQueryDbFile,true);
+			}
+			
+			var queryUtil:QueryUtil = new QueryUtil(destinaQueryDbFile.nativePath);
+			queryUtil.open();
+			return queryUtil;
 		}
 	}
 }
