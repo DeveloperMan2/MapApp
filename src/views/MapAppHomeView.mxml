@@ -91,7 +91,7 @@
 				<s:TextInput id="dataRange"
 							 width="100%"/>
 			</s:HGroup>	
-			<s:HGroup width="100%" gap="6" horizontalAlign="left" verticalAlign="middle">
+			<s:HGroup width="100%" gap="6" horizontalAlign="left" verticalAlign="bottom">
 				<s:Label text="查询到2条记录" width="100%"/>
 				<s:Button id="searchBtn" height="{48*dm.multiResolution}"
 						  icon="{dm.iconAssembly.searchIcon}" 
