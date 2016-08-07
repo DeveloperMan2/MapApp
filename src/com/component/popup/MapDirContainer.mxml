@@ -8,7 +8,6 @@
 	<fx:Script>
 		<![CDATA[
 			import com.component.iconbutton.ImageButton;
-			import com.vo.BrowseVO;
 			
 			import mx.collections.ArrayCollection;
 			import mx.events.FlexEvent;
@@ -35,8 +34,6 @@
 					{
 						if(f.isDirectory)
 						{
-							dm.customMbTilesDir = f;
-							
 							var dirGroup:ImageButton = new ImageButton();
 							dirGroup.url = dm.iconAssembly.dirIcon;
 							var temp:Array = f.nativePath.split("/");
@@ -104,6 +101,7 @@
 						this.currentDirPath.text = f.nativePath;
 						f.getDirectoryListingAsync(); 
 						f.addEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
+						dm.customMbTilesDir = f;
 					}
 				}
 			}
@@ -150,6 +148,7 @@
 					
 					dm.defaultMbTilesDir.getDirectoryListingAsync(); 
 					dm.defaultMbTilesDir.addEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
+					dm.customMbTilesDir = dm.defaultMbTilesDir;
 				}
 			}
 			
@@ -164,6 +163,7 @@
 						this.currentDirPath.text = f.nativePath;
 						f.getDirectoryListingAsync(); 
 						f.addEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
+						dm.customMbTilesDir = f;
 					}
 				}
 			}
