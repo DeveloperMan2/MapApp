@@ -3,7 +3,7 @@
 		xmlns:s="library://ns.adobe.com/flex/spark" 
 		xmlns:supermap="http://www.supermap.com/mobile/2010"
 		actionBarVisible="true"
-		creationComplete="creationCompleteHandler(event)" xmlns:iconbutton="com.component.iconbutton.*">
+		creationComplete="creationCompleteHandler(event)">
 	<fx:Script>
 		<![CDATA[
 			import com.vo.BrowseVO;
@@ -68,6 +68,9 @@
 			
 		]]>
 	</fx:Script>
+	<s:titleContent>
+		<s:Label text="地图应用" width="100%" height="100%" textAlign="center" verticalAlign="middle" backgroundAlpha="0"/>
+	</s:titleContent>
 	<s:navigationContent>	
 		<s:Button icon="{dm.iconAssembly.listIcon}"/>
 		<s:Button icon="{dm.iconAssembly.returnIcon}"/>
