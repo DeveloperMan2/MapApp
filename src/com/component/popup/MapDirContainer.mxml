@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnablePopUpContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						   xmlns:s="library://ns.adobe.com/flex/spark" 
+						   backgroundAlpha="1" backgroundColor="0xFFFFFF"  
+						   creationComplete="initHandler(event)"
+						   resize="resizeHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.component.iconbutton.ImageButton;
+			import com.vo.BrowseVO;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			
+			private const ROOTSTATE:String = "RootState";
+			private const SUBSTATE:String = "SubState";
+			
+			[Bindable]
+			private var dm:DataManager = DataManager.getInstance();
+			/**相片项目宽度-PhotoView*/
+			public var dirItemWidth:Number = 148 * dm.multiResolution;
+			/**相片项目高度-PhotoView*/
+			public var dirItemHeight:Number = 148 * dm.multiResolution;
+			
+			/**设置本地图片数据源-PhotoView, PhotoGroupView*/
+			public function dirGenerator(tileGroup:TileGroup, dirCol:ArrayCollection, fn:Function=null):void
+			{
+				//清除已有照片
+				tileGroup.removeAllElements();
+				if(dirCol != null && dirCol.length > 0)
+				{
+					for each (var f:File in dirCol) 
+					{
+						if(f.isDirectory)
+						{
+							dm.customMbTilesDir = f;
+							
+							var dirGroup:ImageButton = new ImageButton();
+							dirGroup.url = dm.iconAssembly.dirIcon;
+							var temp:Array = f.nativePath.split("/");
+							var dirName:String = temp[temp.length-1];
+							if(dirName == "")
+							{
+								dirName = "手机目录";
+								this.currentState = ROOTSTATE;
+							}
+							else
+							{
+								this.currentState = SUBSTATE;
+							}
+							dirGroup.text = dirName;
+							dirGroup.width = dirItemWidth;
+							dirGroup.height = dirItemHeight;
+							dirGroup.param = f;
+							if(fn != null)
+							{
+								dirGroup.addEventListener(MouseEvent.CLICK, fn);
+							}
+							tileGroup.addElement(dirGroup);
+							
+							this.currentDirPath.text = f.nativePath;
+						}
+						else
+						{
+							var fileItem:ImageButton = new ImageButton();
+							fileItem.url = dm.iconAssembly.fileIcon;
+							var tempf:Array = f.nativePath.split("/");
+							var dirNamef:String = tempf[tempf.length-1];
+							fileItem.text = dirNamef;
+							fileItem.width = dirItemWidth;
+							fileItem.height = dirItemHeight;
+							tileGroup.addElement(fileItem);
+						}
+					}
+				}
+			}
+			
+			protected function initHandler(event:FlexEvent):void
+			{
+				var rootDir:Array = File.getRootDirectories();
+				if(rootDir != null && rootDir.length > 0)
+				{
+					this.dirGenerator(dirGroup, new ArrayCollection(rootDir), dirGroupClickHandler);
+				}
+				
+				//获取初始化路径
+				if(dm.defaultMbTilesDir != null)
+				{
+					this.currentDirPath.text = dm.defaultMbTilesDir.nativePath;
+				}
+			}
+			
+			/**点击文件夹图标*/
+			private function dirGroupClickHandler(event:MouseEvent):void
+			{
+				var imgBtn:ImageButton = event.currentTarget as ImageButton;
+				if(imgBtn != null && imgBtn.param != null)
+				{
+					var f:File = imgBtn.param as File;
+					if(f != null && f.isDirectory)
+					{
+						this.currentDirPath.text = f.nativePath;
+						f.getDirectoryListingAsync(); 
+						f.addEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
+					}
+				}
+			}
+			
+			private function dirListHandler(event:FileListEvent):void 
+			{ 
+				var rootDir:Array = event.files; 
+				if(rootDir != null && rootDir.length > 0)
+				{
+					this.dirGenerator(dirGroup, new ArrayCollection(rootDir), dirGroupClickHandler);
+				}
+			}
+			
+			/**计算行数*/
+			private function calcuteColumnCount():void
+			{
+				/*var dirGroupHeight:Number = this.height - 2*(48*dm.multiResolution)- 10;
+				dirGroup.height = dirGroupHeight;
+				dirGroup.requestedRowCount = parseInt(dirGroupHeight/dirItemHeight);*/
+				
+				this.dirScroller.width = this.width - 10;
+				var dirGroupWidth:Number = this.width - 10 - 20;
+				dirGroup.width = dirGroupWidth;
+				var colCount:int = parseInt((dirGroupWidth/dirItemWidth).toString());
+				var gapWidth:Number = (colCount-1)*40;
+				var realWidth:Number = dirGroupWidth - gapWidth;
+				var realColCount:int = parseInt((realWidth/dirItemWidth).toString());
+				dirGroup.requestedColumnCount = realColCount;
+			}
+			
+			protected function resizeHandler(event:ResizeEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.calcuteColumnCount();
+			}
+			
+			protected function resetBtn_clickHandler(event:MouseEvent):void
+			{
+				//获取初始化路径
+				if(dm.defaultMbTilesDir != null)
+				{
+					this.currentDirPath.text = dm.defaultMbTilesDir.nativePath;
+					dm.findOfflineMap(dm.defaultMbTilesDir);
+					
+					dm.defaultMbTilesDir.getDirectoryListingAsync(); 
+					dm.defaultMbTilesDir.addEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
+				}
+			}
+			
+			protected function returnLastDir_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(dm.customMbTilesDir != null && dm.customMbTilesDir.parent != null)
+				{
+					var f:File = dm.customMbTilesDir.parent;
+					if(f != null && f.isDirectory)
+					{
+						this.currentDirPath.text = f.nativePath;
+						f.getDirectoryListingAsync(); 
+						f.addEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
+					}
+				}
+			}
+			
+			protected function confirmBtn_clickHandler(event:MouseEvent):void
+			{
+				if(dm.customMbTilesDir != null)
+				{
+					dm.findOfflineMap(dm.customMbTilesDir);
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<s:states>
+		<s:State name="RootState"/>
+		<s:State name="SubState"/>
+	</s:states>
+	<s:VGroup width="100%" height="100%" verticalAlign="top" horizontalAlign="center"
+			  paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5">
+		<s:HGroup width="100%" height="{48*dm.multiResolution}" gap="0">
+			<s:Label text="当前目录：" height="100%" verticalAlign="middle"/>
+			<s:Label id="currentDirPath" text="请选择离线地图存放目录"  verticalAlign="middle" width="100%" height="100%"/>
+			<s:Button id="confirmBtn" label="确定" width="{72*dm.multiResolution}" height="100%" click="confirmBtn_clickHandler(event)"/>
+			<s:Button id="resetBtn" label="重置" width="{72*dm.multiResolution}" height="100%" click="resetBtn_clickHandler(event)"/>
+		</s:HGroup>
+		<s:Rect width="100%" height="2">
+			<s:fill>
+				<s:SolidColor color="#000000"/>
+			</s:fill>
+		</s:Rect>
+		<s:HGroup width="100%" height="{48*dm.multiResolution}" 
+				  horizontalAlign="right" verticalAlign="middle" includeIn="SubState">
+			<s:Button id="returnLastDir" label="返回上一级" width="{136*dm.multiResolution}" height="100%"
+					  click="returnLastDir_clickHandler(event)"/>
+		</s:HGroup>
+		<s:Scroller id="dirScroller" width="100%" height="100%"
+					horizontalScrollPolicy="off" verticalScrollPolicy="on">
+			<s:VGroup width="100%" height="100%" gap="0"
+					  horizontalAlign="center"
+					  verticalAlign="top">
+				<s:TileGroup id="dirGroup" 
+							 paddingTop="10" paddingBottom="10" 
+							 paddingLeft="10" paddingRight="10"
+							 horizontalGap="40" verticalGap="40"
+							 width="100%" height="100%"
+							 horizontalAlign="center" 
+							 verticalAlign="middle"
+							 requestedRowCount="-1" 
+							 requestedColumnCount="-1">
+				</s:TileGroup>
+			</s:VGroup>
+		</s:Scroller>
+	</s:VGroup>
+</s:SkinnablePopUpContainer>

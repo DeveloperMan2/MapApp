@@ -102,7 +102,7 @@
 		<!-- The aspect ratio of the app ("portrait" or "landscape" or "any"). 
 			Optional. Mobile only. Default is the natural orientation of the device -->
 
-		<aspectRatio>landscape</aspectRatio>
+		<aspectRatio>any</aspectRatio>
 
 		<!-- Whether the app will begin auto-orienting on launch. Optional. Mobile 
 			only. Default false -->
@@ -132,7 +132,7 @@
 		<!-- Display Resolution for the app (either "standard" or "high"). Optional, 
 			OSX-only. Default "standard" -->
 		<!-- <requestedDisplayResolution></requestedDisplayResolution> -->
-		<autoOrients>false</autoOrients>
+		<autoOrients>true</autoOrients>
 		<fullScreen>true</fullScreen>
 		<visible>true</visible>
 		<softKeyboardBehavior>pan</softKeyboardBehavior>

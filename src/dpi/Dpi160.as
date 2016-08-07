@@ -17,6 +17,14 @@ package dpi
 		public var noDoIcon:Class;
 		
 		//需要根据分辨率调整
+		/**文件夹图标*/
+		[Embed('assets/dpi160/icon/dir.png')]
+		public var dirIcon:Class;
+		
+		/**文件图标*/
+		[Embed('assets/dpi160/icon/file.png')]
+		public var fileIcon:Class;
+		
 		/**周边*/
 		[Embed('assets/dpi160/icon/near.png')]
 		public var nearIcon:Class;

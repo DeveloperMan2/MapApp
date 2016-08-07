@@ -3,15 +3,19 @@
 		xmlns:s="library://ns.adobe.com/flex/spark" 
 		xmlns:supermap="http://www.supermap.com/mobile/2010"
 		actionBarVisible="true"
-		creationComplete="creationCompleteHandler(event)">
+		creationComplete="creationCompleteHandler(event)"
+		resize="resizeHandler(event)">
 	<fx:Script>
 		<![CDATA[
+			import com.component.popup.MapDirContainer;
 			import com.vo.BrowseVO;
 			
+			import mx.core.FlexGlobals;
 			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
 			
+			import spark.components.SkinnablePopUpContainer;
 			import spark.events.IndexChangeEvent;
-			
 			
 			private const QUERYSTATE:String = "QueryState";
 			private const BROWSESTATE:String = "BrowseState";
@@ -106,6 +110,59 @@
 				this.currentState = BROWSESTATE;
 			}
 			
+			//-------------------------------------------
+			private var popup:MapDirContainer = null;
+			private var isShowPopup:Boolean = false;//默认不显示弹出面板
+			/**所有的弹出窗口统一响应*/
+			protected function openPopUP(_popup:SkinnablePopUpContainer,CLS:Class, popupY:Number = -1):Object
+			{
+				if(_popup == null)
+				{
+					_popup = new CLS();
+				}				
+				_popup.width = systemManager.screen.width;  
+				_popup.height = systemManager.screen.height;  
+				if(popupY == -1)
+				{
+					_popup.y = FlexGlobals.topLevelApplication.navigator.y + FlexGlobals.topLevelApplication.actionBar.height;
+				}
+				else
+				{
+					_popup.y = popupY;
+				}
+				
+				//如果窗口关闭则打开
+				if(!_popup.isOpen)
+				{
+					_popup.open(this, false);
+				}
+				
+				return _popup ;
+			}
+			
+			//设置离线地图目录
+			protected function setMapDir_clickHandler(event:MouseEvent):void
+			{
+				if (popup != null && popup.isOpen)  
+				{  
+					popup.close();
+					this.isShowPopup = false;
+				}
+				else
+				{
+					popup = openPopUP(popup,MapDirContainer) as MapDirContainer;
+					this.isShowPopup = true;
+				}
+			}
+			
+			protected function resizeHandler(event:ResizeEvent):void
+			{
+				if(isShowPopup)
+				{
+					popup = openPopUP(popup,MapDirContainer) as MapDirContainer;
+				}
+			}
+			
 		]]>
 	</fx:Script>
 	<s:states>
@@ -116,12 +173,12 @@
 		<s:Label text="地图应用" width="100%" height="100%" textAlign="center" verticalAlign="middle" backgroundAlpha="0"/>
 	</s:titleContent>
 	<s:navigationContent>	
-		<s:Button id="ShowQueryPanel" icon="{dm.iconAssembly.listIcon}" click="ShowQueryPanel_clickHandler(event)"/>
-		<s:Button id="HideQueryPanel" icon="{dm.iconAssembly.returnIcon}" click="HideQueryPanel_clickHandler(event)" 
+		<s:Button id="ShowQueryPanel" toolTip="显示查询面板" icon="{dm.iconAssembly.listIcon}" click="ShowQueryPanel_clickHandler(event)"/>
+		<s:Button id="HideQueryPanel" toolTip="隐藏查询面板" icon="{dm.iconAssembly.returnIcon}" click="HideQueryPanel_clickHandler(event)" 
 				  includeIn="QueryState"/>
 	</s:navigationContent>
 	<s:actionContent>
-		<s:Button icon="{dm.iconAssembly.userIcon}"/>
+		<s:Button id="setMapDir" icon="{dm.iconAssembly.userIcon}" toolTip="设置地图目录" click="setMapDir_clickHandler(event)"/>
 	</s:actionContent>
 	<!--<s:HGroup width="100%" height="100%">-->
 	<supermap:Map id="map" width="100%" height="100%">
