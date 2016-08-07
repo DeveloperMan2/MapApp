@@ -6,13 +6,15 @@
 		creationComplete="creationCompleteHandler(event)">
 	<fx:Script>
 		<![CDATA[
-			import com.supermap.web.core.Rectangle2D;
-			import com.util.Coordinate;
 			import com.vo.BrowseVO;
 			
 			import mx.events.FlexEvent;
 			
 			import spark.events.IndexChangeEvent;
+			
+			
+			private const QUERYSTATE:String = "QueryState";
+			private const BROWSESTATE:String = "BrowseState";
 			
 			[Bindable]
 			private var dm:DataManager = DataManager.getInstance();
@@ -90,19 +92,47 @@
 				this.map.zoomOut();
 			}
 			
+			
+			
+			protected function ShowQueryPanel_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.currentState = QUERYSTATE;
+			}
+			
+			protected function HideQueryPanel_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.currentState = BROWSESTATE;
+			}
+			
 		]]>
 	</fx:Script>
+	<s:states>
+		<s:State name="QueryState"/>
+		<s:State name="BrowseState"/>
+	</s:states>
 	<s:titleContent>
 		<s:Label text="地图应用" width="100%" height="100%" textAlign="center" verticalAlign="middle" backgroundAlpha="0"/>
 	</s:titleContent>
 	<s:navigationContent>	
-		<s:Button icon="{dm.iconAssembly.listIcon}"/>
-		<s:Button icon="{dm.iconAssembly.returnIcon}"/>
+		<s:Button id="ShowQueryPanel" icon="{dm.iconAssembly.listIcon}" click="ShowQueryPanel_clickHandler(event)"/>
+		<s:Button id="HideQueryPanel" icon="{dm.iconAssembly.returnIcon}" click="HideQueryPanel_clickHandler(event)" 
+				  includeIn="QueryState"/>
 	</s:navigationContent>
 	<s:actionContent>
 		<s:Button icon="{dm.iconAssembly.userIcon}"/>
 	</s:actionContent>
-	<s:HGroup width="100%" height="100%">
+	<!--<s:HGroup width="100%" height="100%">-->
+	<supermap:Map id="map" width="100%" height="100%">
+	</supermap:Map>
+	<s:Group height="100%"
+			 includeIn="QueryState" left="0">
+		<s:Rect width="100%" height="100%">
+			<s:fill>
+				<s:SolidColor color="#FFFFFF"/>
+			</s:fill>
+		</s:Rect>
 		<s:VGroup height="100%" width="{300*dm.mapUIScale}" paddingLeft="5" paddingRight="5"
 				  horizontalAlign="right" verticalAlign="top">
 			<s:HGroup width="100%" gap="6" horizontalAlign="left" verticalAlign="middle">
@@ -132,9 +162,8 @@
 					change="mbLayerNameList_changeHandler(event)">							
 			</s:List>
 		</s:VGroup>
-		<supermap:Map id="map" width="100%" height="100%">
-		</supermap:Map>
-	</s:HGroup>
+	</s:Group>
+	<!--</s:HGroup>-->
 	<s:VGroup id="toolGroup" height="100%" right="12" gap="12"
 			  horizontalAlign="right" verticalAlign="middle">
 		<s:Button id="fullMapBtn" 
