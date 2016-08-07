@@ -8,6 +8,7 @@
 	<fx:Script>
 		<![CDATA[
 			import com.component.popup.MapDirContainer;
+			import com.util.AppEvent;
 			import com.vo.BrowseVO;
 			
 			import mx.core.FlexGlobals;
@@ -29,6 +30,10 @@
 			{
 				dm.initMap(this.map);
 				
+				dm.initAppLayerCol();
+				
+				AppEvent.addListener(AppEvent.MB_DATACHANGE, mbDataChangeHandler);
+				
 				if(tMake == null)
 				{
 					tMake = new Timer(100);
@@ -41,22 +46,29 @@
 				dm.resetMapPosition(116.091343, 29.738883, 116.209089, 29.760974);
 			}
 			
+			private function mbDataChangeHandler(event:AppEvent):void
+			{
+				loadMbLayerHandler(null);
+			}
+			
 			private function loadMbLayerHandler(event:TimerEvent):void
 			{
-				dm.initAppLayerCol();
-				
+				this.mbLayerNameList.dataProvider = null;
 				if(dm.ImgLayerArrCol != null && dm.ImgLayerArrCol.length > 0)
 				{
+					if(tMake != null)
+					{
+						tMake.stop();
+						tMake.removeEventListener(TimerEvent.TIMER, loadMbLayerHandler);
+						tMake = null;
+					}
+					
 					var bVo:BrowseVO = dm.ImgLayerArrCol.getItemAt(0) as BrowseVO;
 					
 					if(bVo != null)
 					{
 						dm.addMbLayer(bVo);
 					}
-					
-					tMake.stop();
-					tMake.removeEventListener(TimerEvent.TIMER, loadMbLayerHandler);
-					tMake = null;
 					
 					this.mbLayerNameList.dataProvider = dm.ImgLayerArrCol;
 					this.mbLayerNameList.labelField = "layerName";
@@ -214,7 +226,7 @@
 				</s:fill>
 			</s:Rect>
 			<s:List id="mbLayerNameList" width="100%" height="100%"
-					requireSelection="false" selectedIndex="0"
+					requireSelection="true" selectedIndex="0"
 					textAlign="left"
 					change="mbLayerNameList_changeHandler(event)">							
 			</s:List>
