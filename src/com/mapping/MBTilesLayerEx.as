@@ -1,11 +1,13 @@
 package  com.mapping
 {
+	import com.supermap.web.sm_internal;
 	import com.supermap.web.core.Point2D;
+	import com.supermap.web.core.Rectangle2D;
 	import com.supermap.web.mapping.ImageFormat;
 	import com.supermap.web.mapping.TiledCachedLayer;
 	import com.supermap.web.mapping.supportClasses.MetadataObj;
-	import com.supermap.web.sm_internal;
 	import com.supermap.web.utils.CoordinateReferenceSystem;
+	import com.util.Coordinate;
 	
 	import flash.utils.ByteArray;
 	
@@ -35,23 +37,13 @@ package  com.mapping
 				this._metadataObj = this._mbtilesHelper.readMetadataObj();
 				if (this._metadataObj != null)
 				{
-					//		this.bounds =  this._metadataObj.bounds;
-					//					this.resolutions = this._metadataObj.resolutions;				
-					//	this.scales = this._metadataObj.scales;					
-					//					this.origin = new Point2D(this.bounds.left, this.bounds.top);
-					//    this.origin = new Point2D(-20037508.3392,20037508.3392);
+					this.bounds =  Coordinate.rectangle2DToMercator(this._metadataObj.bounds);
+				    this.origin = new Point2D(-20037508.3392,20037508.3392);
 					this._compatible = this._metadataObj.compatible;
 					this.tileSize = this._metadataObj.tileSize;
 					this.imageFormat = this._metadataObj.format.toLowerCase() == "jpg" ? (ImageFormat.JPG) : (ImageFormat.PNG);
 					this.CRS = new CoordinateReferenceSystem(this._metadataObj.crs_wkid, this._metadataObj.unit);
-					
-					//					dm.mapVo.bounds = this.bounds;
-					//					dm.mapVo.resolutions = this.resolutions;
-					//					dm.map.resolutions = dm.mapVo.resolutions;					
 					setLoaded(true);					
-					
-					// debug
-					//dm.map.resolutions = this.resolutions;
 				}
 				else
 				{

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		xmlns:s="library://ns.adobe.com/flex/spark" 
 		xmlns:supermap="http://www.supermap.com/mobile/2010"
@@ -21,15 +21,12 @@
 			import mx.utils.StringUtil;
 			
 			import spark.components.SkinnablePopUpContainer;
-			import spark.events.IndexChangeEvent;
 			
 			private const QUERYSTATE:String = "QueryState";
 			private const BROWSESTATE:String = "BrowseState";
 			
 			[Bindable]
 			private var dm:DataManager = DataManager.getInstance();
-			
-//			private var tMake:Timer = null;
 			
 			/**定义关键字查询对象*/
 			private var queryUtil:QueryUtil;
@@ -51,19 +48,20 @@
 				
 				dm.addTdtLayer();
 				
-				dm.resetMapPosition(116.091343, 29.738883, 116.209089, 29.760974);
-				
 				//初始化查询对象
 				//复制查询使用的数据库 , 判断文件是否存在，不存在进行复制操作
 				var destinaPath:String = MainVO.DataCacheRootPath + MainVO.QueryDBFileName;
 				var destinaQueryDbFile:File = RootDirectory.extSDCard.resolvePath(destinaPath);
 				if (destinaQueryDbFile.exists == false) {
-					var originQueryDbFile:File = File.applicationDirectory.resolvePath(MainVO.QueryOriginPath+File.separator+ MainVO.QueryDBFileName);
+					var originQueryDbFile:File = File.applicationDirectory.resolvePath(MainVO.OriginDBPath+MainVO.QueryDBFileName);
 					destinaQueryDbFile.parent.createDirectory();
 					originQueryDbFile.copyTo(destinaQueryDbFile,true);
 				}
 				queryUtil = new QueryUtil(destinaQueryDbFile.nativePath);
 				queryUtil.open();
+				
+				//初始化获取列表
+				searchBtn_clickHandler();
 			}
 			
 			private function mbDataChangeHandler(event:AppEvent):void
@@ -119,7 +117,6 @@
 				if(bVo != null)
 				{
 					dm.addMbLayer(bVo);
-					dm.resetMapPosition(116.091343, 29.738883, 116.209089, 29.760974);
 				}
 			}
 			
@@ -127,8 +124,7 @@
 			protected function fullMapBtn_clickHandler(event:MouseEvent):void
 			{
 				// TODO Auto-generated method stub
-				//this.map.viewEntire();
-				dm.resetMapPosition(116.091343, 29.738883, 116.209089, 29.760974);
+				this.map.viewBounds = dm.mapViewBounds;
 			}
 			
 			/**放大*/
@@ -159,13 +155,10 @@
 				this.currentState = BROWSESTATE;
 			}
 			
-			protected function searchBtn_clickHandler(event:MouseEvent):void
+			protected function searchBtn_clickHandler():void
 			{
 				var keyWord:String = dataKeyWord.text;
 				keyWord = StringUtil.trim(keyWord);
-				//				if (keyWord.length > 0){
-				//					
-				//				}
 				var resultList:Array = queryUtil.queryByName(keyWord);
 				mbLayerNameList.dataProvider = new ArrayCollection(resultList);
 			}
@@ -253,20 +246,14 @@
 		<s:VGroup height="100%" width="{300*dm.mapUIScale}" paddingLeft="5" paddingRight="5"
 				  horizontalAlign="right" verticalAlign="top">
 			<s:HGroup width="100%" gap="6" horizontalAlign="left" verticalAlign="middle">
-				<s:Label text="名称:"/>
-				<s:TextInput id="dataKeyWord" width="100%"/>
-			</s:HGroup>
-			<s:HGroup width="100%" gap="6" horizontalAlign="left" verticalAlign="middle">
-				<s:Label text="范围:"/>
-				<s:TextInput id="dataRange"
-							 width="100%"/>
-			</s:HGroup>	
-			<s:HGroup width="100%" gap="6" horizontalAlign="left" verticalAlign="bottom">
-				<s:Label id="queryResultInfoLb" text="" width="100%"/>
+				<s:TextInput id="dataKeyWord" prompt="输入查询关键字" width="100%"/>
 				<s:Button id="searchBtn" height="{48*dm.multiResolution}"
 						  icon="{dm.iconAssembly.searchIcon}" 
 						  iconPlacement="left"
-						  click="searchBtn_clickHandler(event)"/>
+						  click="searchBtn_clickHandler()"/>
+			</s:HGroup>
+			<s:HGroup width="100%" gap="6" horizontalAlign="left" verticalAlign="bottom">
+				<s:Label id="queryResultInfoLb" text="" width="100%"/>
 			</s:HGroup>	
 			<s:Rect width="100%" height="2">
 				<s:fill>
@@ -276,7 +263,7 @@
 			<s:List id="mbLayerNameList" width="100%" height="100%"
 					requireSelection="true" selectedIndex="0"
 					textAlign="left"  labelField="name"
-					click="mbLayerNameList_changeHandler(event)">							
+					valueCommit="mbLayerNameList_changeHandler()">							
 			</s:List>
 		</s:VGroup>
 	</s:Group>

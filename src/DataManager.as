@@ -3,7 +3,6 @@ package
 	import com.component.iconbutton.ButtonItem;
 	import com.mapping.MBTilesLayerEx;
 	import com.mapping.TiledTDTLayer;
-	import com.supermap.web.core.Point2D;
 	import com.supermap.web.core.Rectangle2D;
 	import com.supermap.web.mapping.Map;
 	import com.supermap.web.mapping.OfflineStorage;
@@ -11,6 +10,7 @@ package
 	import com.util.AppEvent;
 	import com.util.Coordinate;
 	import com.util.RootDirectory;
+	import com.util.SystemConfigUtil;
 	import com.vo.BrowseVO;
 	import com.vo.MainVO;
 	import com.vo.MapVO;
@@ -124,6 +124,12 @@ package
 		/**离线影像图层列表*/
 		public var ImgLayerArrCol:ArrayCollection = null;
 		
+		
+		/**系统配置数据查询对象*/
+		private var systemConfigUtil:SystemConfigUtil;
+		
+		public var mapViewBounds:Rectangle2D;
+		
 		/**
 		 * 
 		 * 
@@ -156,23 +162,12 @@ package
 		}
 		
 		/**
-		 *获取地图位置 
-		 * 
-		 */
-		public function getMapBounds(l:Number,b:Number,r:Number,t:Number):Rectangle2D
-		{
-			var rect2d:Rectangle2D = new Rectangle2D(Coordinate.lon2Mercator(l), Coordinate.lat2Mercator(b), Coordinate.lon2Mercator(r),Coordinate.lat2Mercator(t));
-			
-			return rect2d;
-		}
-		
-		/**
 		 *重置地图位置 
 		 * 
 		 */
-		public function resetMapPosition(l:Number,b:Number,r:Number,t:Number):void
+		public function resetMapPosition(rect:Rectangle2D):void
 		{
-			this.map.viewBounds = this.getMapBounds(l,b,r,t);
+			this.mapViewBounds = this.map.viewBounds = rect;
 		}
 		
 		/**
@@ -182,7 +177,18 @@ package
 		 */
 		public function addMbLayer(bVo:Object):void
 		{
-			var layerUrl:String =  RootDirectory.extSDCard.resolvePath(MainVO.MbMapsRootPath+bVo.path).nativePath; 
+			var systemMbitlesPath:String = querySystemMbtilesFolderPath();
+			var layerUrl:String;
+			if (systemMbitlesPath != null || systemMbitlesPath.length > 0) {
+				var mbtilesFolder:File = File.applicationDirectory.resolvePath(systemMbitlesPath);
+				if (mbtilesFolder.exists && mbtilesFolder.isDirectory) {
+					layerUrl = systemMbitlesPath.charAt(systemMbitlesPath.length -1 ) == File.separator ? systemMbitlesPath + bVo.path : systemMbitlesPath +File.separator+ bVo.path;
+				}
+			} 
+			if (layerUrl == null) {
+				layerUrl =  RootDirectory.extSDCard.resolvePath(MainVO.MbMapsRootPath+bVo.path).nativePath;
+			}
+			
 			if(this.imageBaseLayer != null)
 			{
 				(this.imageBaseLayer as MBTilesLayerEx).mbtilesPath =layerUrl
@@ -193,11 +199,10 @@ package
 				var mbtilesLayer:MBTilesLayerEx;
 				mbtilesLayer = new MBTilesLayerEx();
 				mbtilesLayer.mbtilesPath = layerUrl;
-				mbtilesLayer.bounds = this.getMapBounds(116.091343, 29.738883, 116.209089, 29.760974);
-				mbtilesLayer.origin = new Point2D(-20037508.3392, 20037508.3392);
 				this.map.addLayer(mbtilesLayer);
 				this.imageBaseLayer = mbtilesLayer;
 			}
+			dm.resetMapPosition(imageBaseLayer.bounds);
 		}
 		
 		/**
@@ -418,6 +423,25 @@ package
 					break;
 				}
 			}
+		}
+		
+		//获取系统影像文件mbtiles文件路径，通过system.db查询
+		private function querySystemMbtilesFolderPath():String
+		{
+			if (systemConfigUtil == null) {
+				
+				var destinaPath:String = MainVO.DataCacheRootPath + MainVO.SystemDBFileName;
+				var destinaSystemDbFile:File = RootDirectory.extSDCard.resolvePath(destinaPath);
+				if (destinaSystemDbFile.exists == false) {
+					var originSystemDbFile:File = File.applicationDirectory.resolvePath(MainVO.OriginDBPath+MainVO.SystemDBFileName);
+					destinaSystemDbFile.parent.createDirectory();
+					originSystemDbFile.copyTo(destinaSystemDbFile,true);
+				}
+				
+				systemConfigUtil = new SystemConfigUtil(destinaSystemDbFile.nativePath);
+				systemConfigUtil.open();
+			}
+			return systemConfigUtil.queryMbtilesFolderPath();
 		}
 	}
 }

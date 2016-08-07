@@ -19,9 +19,12 @@ package com.vo
 		public static const MbMapsRootPath:String = RootPath + "MbMaps"+File.separator;
 		
 		/**查询数据文件系统原始路径*/
-		public static const QueryOriginPath:String = "query";
+		public static const OriginDBPath:String = "query" + File.separator;
 		
 		/**查询数据库文件名称*/
 		public static const QueryDBFileName:String= "imageinfo.db";
+		
+		/**系统配置数据库文件名称*/
+		public static const SystemDBFileName:String = "system.db"; 
 	}
 }
