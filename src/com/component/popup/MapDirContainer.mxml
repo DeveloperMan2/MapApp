@@ -86,6 +86,9 @@
 				if(dm.defaultMbTilesDir != null)
 				{
 					this.currentDirPath.text = dm.defaultMbTilesDir.nativePath;
+					dm.defaultMbTilesDir.getDirectoryListingAsync(); 
+					dm.defaultMbTilesDir.addEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
+					dm.customMbTilesDir = dm.defaultMbTilesDir;
 				}
 			}
 			
