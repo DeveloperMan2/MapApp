@@ -8,11 +8,16 @@
 	<fx:Script>
 		<![CDATA[
 			import com.component.popup.MapDirContainer;
+			import com.util.QueryUtil;
+			import com.util.RootDirectory;
 			import com.vo.BrowseVO;
+			import com.vo.MainVO;
 			
 			import mx.core.FlexGlobals;
+			import mx.collections.ArrayCollection;
 			import mx.events.FlexEvent;
 			import mx.events.ResizeEvent;
+			import mx.utils.StringUtil;
 			
 			import spark.components.SkinnablePopUpContainer;
 			import spark.events.IndexChangeEvent;
@@ -25,6 +30,9 @@
 			
 			private var tMake:Timer = null;
 			
+			/**定义关键字查询对象*/
+			private var queryUtil:QueryUtil;
+			
 			protected function creationCompleteHandler(event:FlexEvent):void
 			{
 				dm.initMap(this.map);
@@ -33,12 +41,32 @@
 				{
 					tMake = new Timer(100);
 					tMake.addEventListener(TimerEvent.TIMER, loadMbLayerHandler);
-					tMake.start();
+//					tMake.start();
 				}
 				
 				dm.addTdtLayer();
 				
 				dm.resetMapPosition(116.091343, 29.738883, 116.209089, 29.760974);
+				
+				//初始化查询对象
+				//复制查询使用的数据库 , 判断文件是否存在，不存在进行复制操作
+				var destinaPath:String = MainVO.DataCacheRootPath + MainVO.QueryDBFileName;
+				var destinaQueryDbFile:File = RootDirectory.extSDCard.resolvePath(destinaPath);
+				if (destinaQueryDbFile.exists == false) {
+					var originQueryDbFile:File = File.applicationDirectory.resolvePath(MainVO.QueryOriginPath+File.separator+ MainVO.QueryDBFileName);
+				
+//					var destinaParentFile:File = File.documentsDirectory.resolvePath(destinaQueryDbFile.parent);
+					destinaQueryDbFile.parent.createDirectory();
+					
+//					var file:File = File.documentsDirectory.resolvePath( MainVO.DataCacheRootPath);
+//					file.createDirectory();
+					
+//					var dbFile:File =  File.documentsDirectory.resolvePath(destinaParentFile);
+					originQueryDbFile.copyTo(destinaQueryDbFile,true);
+				}
+				
+				queryUtil = new QueryUtil(destinaPath);
+				queryUtil.open();
 			}
 			
 			private function loadMbLayerHandler(event:TimerEvent):void
@@ -108,6 +136,17 @@
 			{
 				// TODO Auto-generated method stub
 				this.currentState = BROWSESTATE;
+			}
+			
+			protected function searchBtn_clickHandler(event:MouseEvent):void
+			{
+				var keyWord:String = dataKeyWord.text;
+				keyWord = StringUtil.trim(keyWord);
+				//				if (keyWord.length > 0){
+				//					
+				//				}
+				var resultList:Array = queryUtil.queryByName(keyWord);
+				mbLayerNameList.dataProvider = new ArrayCollection(resultList);
 			}
 			
 			//-------------------------------------------
@@ -194,8 +233,7 @@
 				  horizontalAlign="right" verticalAlign="top">
 			<s:HGroup width="100%" gap="6" horizontalAlign="left" verticalAlign="middle">
 				<s:Label text="名称:"/>
-				<s:TextInput id="dataKeyWord"
-							 width="100%"/>
+				<s:TextInput id="dataKeyWord" width="100%"/>
 			</s:HGroup>
 			<s:HGroup width="100%" gap="6" horizontalAlign="left" verticalAlign="middle">
 				<s:Label text="范围:"/>
@@ -203,10 +241,11 @@
 							 width="100%"/>
 			</s:HGroup>	
 			<s:HGroup width="100%" gap="6" horizontalAlign="left" verticalAlign="bottom">
-				<s:Label text="查询到2条记录" width="100%"/>
+				<s:Label id="queryResultInfoLb" text="" width="100%"/>
 				<s:Button id="searchBtn" height="{48*dm.multiResolution}"
 						  icon="{dm.iconAssembly.searchIcon}" 
-						  iconPlacement="left"/>
+						  iconPlacement="left"
+						  click="searchBtn_clickHandler(event)"/>
 			</s:HGroup>	
 			<s:Rect width="100%" height="2">
 				<s:fill>
@@ -215,7 +254,7 @@
 			</s:Rect>
 			<s:List id="mbLayerNameList" width="100%" height="100%"
 					requireSelection="false" selectedIndex="0"
-					textAlign="left"
+					textAlign="left"  labelField="name"
 					change="mbLayerNameList_changeHandler(event)">							
 			</s:List>
 		</s:VGroup>

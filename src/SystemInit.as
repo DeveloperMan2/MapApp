@@ -15,7 +15,8 @@ package
 		 * 
 		 * @param isCreate-isCreate-是否创建系统缓存目录，默认false*/
 		public function initSystemDirectory(isCreate:Boolean=false):void
-		{						
+		{					
+			
 			if(isCreate)
 			{	
 				var paths:Array = [

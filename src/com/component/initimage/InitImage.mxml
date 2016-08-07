@@ -31,7 +31,7 @@
 		source="@Embed('assets/dpi320/init/2560_1600.jpg')" 
 		aspectRatio="landscape"/> 
 	
-<!--	<s:SplashScreenImageSource 
+	<!--<s:SplashScreenImageSource 
 		dpi="480"
 		source="@Embed('assets/dpi320/init/1600_2560.jpg')" 
 		aspectRatio="portrait"/> 

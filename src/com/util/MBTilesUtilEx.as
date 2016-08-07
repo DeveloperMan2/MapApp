@@ -1,4 +1,4 @@
-package sm.mobile.jx.core.map
+package com.util
 {
 	import com.supermap.web.sm_internal;
 	import com.supermap.web.mapping.supportClasses.MetadataObj;
