@@ -1,5 +1,11 @@
 package com.util
 {
+	import com.supermap.web.core.Rectangle2D;
+	import com.supermap.web.core.geometry.GeoPoint;
+	import com.supermap.web.core.geometry.Geometry;
+	
+	import spark.primitives.Rect;
+
 	public class Coordinate
 	{
 		public static var M_PI:Number=Math.PI;
@@ -36,5 +42,21 @@ package com.util
 			
 			return y;
 		}
+		
+		public static function  geographicToMercator(geometry:Geometry):Geometry
+		{
+			if (geometry is GeoPoint)
+			{
+				var geoPoint:GeoPoint = geometry as GeoPoint;
+				return new GeoPoint(lon2Mercator(geoPoint.x), lat2Mercator(geoPoint.y));
+			} 
+			return null;
+		}
+		
+		public static function  rectangle2DToMercator(rect:Rectangle2D):Rectangle2D
+		{
+				return new Rectangle2D(lon2Mercator(rect.left), lat2Mercator(rect.bottom), lon2Mercator(rect.right), lat2Mercator(rect.top));
+		}
+			
 	}
 }
