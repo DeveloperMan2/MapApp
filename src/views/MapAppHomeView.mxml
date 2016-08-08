@@ -54,6 +54,7 @@
 			private function loadMbLayerHandler(event:TimerEvent):void
 			{
 				this.mbLayerNameList.dataProvider = null;
+				var bVo:BrowseVO = null;
 				if(dm.ImgLayerArrCol != null && dm.ImgLayerArrCol.length > 0)
 				{
 					if(tMake != null)
@@ -63,15 +64,27 @@
 						tMake = null;
 					}
 					
-					var bVo:BrowseVO = dm.ImgLayerArrCol.getItemAt(0) as BrowseVO;
+					bVo = dm.ImgLayerArrCol.getItemAt(0) as BrowseVO;
 					
 					if(bVo != null)
 					{
+						if(dm.imageBaseLayer != null)
+						{
+							dm.imageBaseLayer.visible = true;
+						}
+						
 						dm.addMbLayer(bVo);
 					}
 					
 					this.mbLayerNameList.dataProvider = dm.ImgLayerArrCol;
 					this.mbLayerNameList.labelField = "layerName";
+				}
+				else
+				{
+					if(dm.imageBaseLayer != null)
+					{
+						dm.imageBaseLayer.visible = false;
+					}
 				}
 			}
 			

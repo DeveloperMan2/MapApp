@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:SkinnablePopUpContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
 						   xmlns:s="library://ns.adobe.com/flex/spark" 
-						   backgroundAlpha="0.8" backgroundColor="0xFFFFFF"  
+						   backgroundAlpha="1" backgroundColor="0xFFFFFF"  
 						   creationComplete="initHandler(event)"
 						   resize="resizeHandler(event)">
 	
@@ -15,6 +15,7 @@
 			
 			private const ROOTSTATE:String = "RootState";
 			private const SUBSTATE:String = "SubState";
+			private const LOADSTATE:String = "LoadState";
 			
 			[Bindable]
 			private var dm:DataManager = DataManager.getInstance();
@@ -28,21 +29,8 @@
 			{
 				if(f != null)
 				{
-					this.queryInfoGroup.visible = true;
-					this.queryInfoGroup.includeInLayout = true;
-					
+					this.currentState = LOADSTATE;
 					dm.customMbTilesDir = f;
-					this.currentDirPath.text = f.nativePath;
-					var temp:Array = f.nativePath.split("/");
-					var dirName:String = temp[temp.length-1];
-					if(dirName == "")
-					{
-						this.currentState = ROOTSTATE;
-					}
-					else
-					{
-						this.currentState = SUBSTATE;
-					}
 					f.getDirectoryListingAsync(); 
 					f.addEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
 				}
@@ -61,9 +49,6 @@
 						}
 					}
 				}
-				
-				this.queryInfoGroup.visible = false;
-				this.queryInfoGroup.includeInLayout = false;
 			}
 			
 			/**设置本地图片数据源-PhotoView, PhotoGroupView*/
@@ -132,6 +117,18 @@
 				
 				//实时刷新列表
 				dm.findOfflineMap(dm.customMbTilesDir);
+				
+				this.currentDirPath.text = dm.customMbTilesDir.nativePath;
+				var temp:Array = dm.customMbTilesDir.nativePath.split("/");
+				var dirName:String = temp[temp.length-1];
+				if(dirName == "")
+				{
+					this.currentState = ROOTSTATE;
+				}
+				else
+				{
+					this.currentState = SUBSTATE;
+				}
 			}
 			
 			/**计算行数*/
@@ -181,13 +178,20 @@
 	<s:states>
 		<s:State name="RootState"/>
 		<s:State name="SubState"/>
+		<s:State name="LoadState"/>
 	</s:states>
 	<s:VGroup width="100%" height="100%" verticalAlign="top" horizontalAlign="center"
 			  paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5">
 		<s:HGroup width="100%" height="{48*dm.multiResolution}" gap="0">
 			<s:Label text="当前目录：" height="100%" verticalAlign="middle"/>
-			<s:Label id="currentDirPath" text="请选择离线地图存放目录"  verticalAlign="middle" width="100%" height="100%"/>
-			<s:Button id="resetBtn" label="重置目录" width="{144*dm.multiResolution}" height="100%" click="resetBtn_clickHandler(event)"/>
+			<s:Label id="currentDirPath" text="请选择离线地图存放目录" 
+					 verticalAlign="middle" 
+					 width="100%" height="100%"/>
+			<s:Button id="resetBtn" label="重置目录"  
+					  icon="{dm.iconAssembly.resetIcon}" 
+					  iconPlacement="left" 
+					  width="{164*dm.multiResolution}" height="100%"
+					  click="resetBtn_clickHandler(event)"/>
 			<!--<s:Button id="confirmBtn" label="确定目录" width="{124*dm.multiResolution}" height="100%" click="confirmBtn_clickHandler(event)"/>-->
 		</s:HGroup>
 		<s:Rect width="100%" height="2">
@@ -197,14 +201,13 @@
 		</s:Rect>
 		<s:HGroup width="100%" height="{48*dm.multiResolution}" 
 				  horizontalAlign="right" verticalAlign="middle" includeIn="SubState" itemCreationPolicy="immediate">
-			<s:HGroup id="queryInfoGroup" width="100%" height="100%" horizontalAlign="left">
-				<s:Label text="正在查询..." height="100%" verticalAlign="middle"/>
-				<s:BusyIndicator symbolColor="#ff0000" width="{48*dm.multiResolution}" height="{48*dm.multiResolution}"/>
-			</s:HGroup>
-			<s:Button id="returnLastDir" label="返回上一级" width="{136*dm.multiResolution}" height="100%"
+			<s:Button id="returnLastDir" label="返回上级" 
+					  icon="{dm.iconAssembly.backIcon}" 
+					  iconPlacement="left" 
+					  width="{164*dm.multiResolution}" height="100%"
 					  click="returnLastDir_clickHandler(event)"/>
 		</s:HGroup>
-		<s:Scroller id="dirScroller" height="100%"
+		<s:Scroller id="dirScroller" height="100%" excludeFrom="LoadState"
 					horizontalScrollPolicy="off" verticalScrollPolicy="on">
 			<s:VGroup width="100%" height="100%" gap="0"
 					  horizontalAlign="center"
@@ -221,5 +224,9 @@
 				</s:TileGroup>
 			</s:VGroup>
 		</s:Scroller>
+		<s:VGroup width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" includeIn="LoadState">
+			<s:BusyIndicator symbolColor="#ff0000" width="{72*dm.multiResolution}" height="{72*dm.multiResolution}"/>
+			<s:Label text="正在查询，请稍候..." width="100%" textAlign="center"/>
+		</s:VGroup>
 	</s:VGroup>
 </s:SkinnablePopUpContainer>

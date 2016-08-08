@@ -17,6 +17,14 @@ package dpi
 		public var noDoIcon:Class;
 		
 		//需要根据分辨率调整
+		/**返回上级目录图标*/
+		[Embed('assets/dpi240/icon/back.png')]
+		public var backIcon:Class;
+		
+		/**重置图标*/
+		[Embed('assets/dpi240/icon/reset.png')]
+		public var resetIcon:Class;
+		
 		/**文件夹图标*/
 		[Embed('assets/dpi240/icon/dir.png')]
 		public var dirIcon:Class;
