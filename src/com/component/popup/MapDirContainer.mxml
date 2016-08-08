@@ -33,7 +33,7 @@
 				{
 					this.currentState = LOADSTATE;
 					dm.customMbTilesDir = f;
-					f.getDirectoryListingAsync(); 
+					f.getDirectoryListingAsync();
 					f.addEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
 				}
 			}
@@ -113,10 +113,7 @@
 			private function dirListHandler(event:FileListEvent):void 
 			{ 
 				var rootDir:Array = event.files; 
-				if(rootDir != null && rootDir.length > 0)
-				{
-					this.dirGenerator(dirGroup, new ArrayCollection(rootDir), dirGroupClickHandler);
-				}
+				this.dirGenerator(dirGroup, new ArrayCollection(rootDir), dirGroupClickHandler);
 				
 				this.closeDirInfo([dm.customMbTilesDir]);
 				
@@ -157,8 +154,8 @@
 			
 			protected function resetBtn_clickHandler(event:MouseEvent):void
 			{
-				var rootFile:File = File.getRootDirectories()[0];
-				getDirInfo(rootFile);
+				//				var rootFile:File = File.getRootDirectories()[0];
+				getDirInfo(File.documentsDirectory);
 			}
 			
 			protected function returnLastDir_clickHandler(event:MouseEvent):void
@@ -175,7 +172,7 @@
 			{
 				if(dm.customMbTilesDir != null)
 				{
-//					dm.findOfflineMap(dm.customMbTilesDir);
+					//					dm.findOfflineMap(dm.customMbTilesDir);
 					//更新数据库存储文件路径
 					var success:Boolean = dm.setSystemConfigMbtilesPath(dm.customMbTilesDir.nativePath);
 					if (success == false) {
