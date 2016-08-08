@@ -31,8 +31,6 @@
 			{
 				dm.initMap(this.map);
 				
-				dm.initAppLayerCol();
-				
 				dm.addTdtLayer();
 				
 				//初始化查询对象
@@ -44,36 +42,8 @@
 			
 			protected function mbLayerNameList_changeHandler():void
 			{
-				loadMbLayerHandler(null);
-			}
-			
-			private function loadMbLayerHandler(event:TimerEvent):void
-			{
-				this.mbLayerNameList.dataProvider = null;
-				var bVo:BrowseVO = null;
-				if(dm.ImgLayerArrCol != null && dm.ImgLayerArrCol.length > 0)
-				{
-					bVo = dm.ImgLayerArrCol.getItemAt(0) as BrowseVO;
-					
-					if(bVo != null)
-					{
-						if(dm.imageBaseLayer != null)
-						{
-							dm.imageBaseLayer.visible = true;
-						}
-						
-						dm.addMbLayer(bVo);
-					}
-					
-					this.mbLayerNameList.dataProvider = dm.ImgLayerArrCol;
-					this.mbLayerNameList.labelField = "layerName";
-				}
-				else
-				{
-					if(dm.imageBaseLayer != null)
-					{
-						dm.imageBaseLayer.visible = false;
-					}
+				if (mbLayerNameList.selectedItem != null){
+					dm.addMbLayer(mbLayerNameList.selectedItem);
 				}
 			}
 			
@@ -173,6 +143,16 @@
 				}
 			}
 			
+			protected function ImageAlpha_clickHandler(event:MouseEvent):void
+			{
+				imageAlphaSlider.visible = !imageAlphaSlider.visible;
+			}
+			
+			protected function imageAlphaSlider_changeHandler(event:Event):void
+			{
+				dm.imageBaseLayer.alpha = imageAlphaSlider.value;
+			}
+			
 		]]>
 	</fx:Script>
 	<s:states>
@@ -191,8 +171,7 @@
 		<s:Button id="setMapDir" icon="{dm.iconAssembly.userIcon}" toolTip="设置地图目录" click="setMapDir_clickHandler(event)"/>
 	</s:actionContent>
 	<!--<s:HGroup width="100%" height="100%">-->
-	<supermap:Map id="map" width="100%" height="100%">
-	</supermap:Map>
+	<supermap:Map id="map" width="100%" height="100%"/>
 	<s:Group height="100%"
 			 includeIn="QueryState" left="0">
 		<s:Rect width="100%" height="100%">
@@ -233,5 +212,12 @@
 				  icon="{dm.iconAssembly.zoomInIcon}" styleName="OperationButton" click="zoomInBtn_clickHandler(event)"/>
 		<s:Button id="zoomOutBtn" 
 				  icon="{dm.iconAssembly.zoomOutIcon}" styleName="OperationButton" click="zoomOutBtn_clickHandler(event)"/>
+		<s:VGroup horizontalAlign="right">
+			<s:Button id="ImageAlpha" 
+					  icon="{dm.iconAssembly.userIcon}" styleName="OperationButton" click="ImageAlpha_clickHandler(event)"/>
+			<s:HSlider id="imageAlphaSlider" visible="false" includeInLayout="{imageAlphaSlider.visible}" 
+					   minimum="0" maximum="1"  value="1"  stepSize="0.1" width="{200*dm.multiResolution}"  
+					   change="imageAlphaSlider_changeHandler(event)"/>
+		</s:VGroup>
 	</s:VGroup>
 </s:View>

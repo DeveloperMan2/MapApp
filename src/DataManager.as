@@ -57,7 +57,7 @@ package
 		}	
 		
 		/**系统默认的离线影像数据目录*/
-		public var defaultMbTilesDir:File = null;
+	//	public var defaultMbTilesDir:File = null;
 		/**用户设定的离线影像数据目录*/
 		public var customMbTilesDir:File = null;
 		
@@ -186,7 +186,12 @@ package
 				}
 			} 
 			if (layerUrl == null) {
-				layerUrl =  RootDirectory.root.resolvePath(MainVO.MbMapsRootPath+bVo.path).nativePath;
+				var file:File = RootDirectory.root.resolvePath(MainVO.MbMapsRootPath+bVo.path);
+				if (file.exists && !file.isDirectory) {
+					layerUrl =  RootDirectory.root.resolvePath(MainVO.MbMapsRootPath+bVo.path).nativePath;
+				} else {
+					return;
+				}
 			}
 			
 			if(this.imageBaseLayer != null)
@@ -286,10 +291,10 @@ package
 			//			findOfflineMap(directory);
 			
 			//直接访问内置SD卡
-			var directory:File = RootDirectory.root.resolvePath(MainVO.MbMapsRootPath); 
-			this.defaultMbTilesDir = directory;
-			
-			findOfflineMap(directory);
+//			var directory:File = RootDirectory.root.resolvePath(MainVO.MbMapsRootPath); 
+//			this.defaultMbTilesDir = directory;
+//			
+//			findOfflineMap(directory);
 		}
 		
 		//异步加载影像离线地图列表
@@ -426,7 +431,7 @@ package
 		}
 		
 		//获取系统影像文件mbtiles文件路径，通过system.db查询
-		private function getSystemConfigMbtilesPath():String
+		public function getSystemConfigMbtilesPath():String
 		{
 			if (systemConfigUtil == null) {
 				var destinaPath:String = MainVO.SystemConfigPath + MainVO.SystemDBFileName;
@@ -445,8 +450,8 @@ package
 			return mbtilesPath;
 		}
 		
-		//获取系统影像文件mbtiles文件路径，通过system.db查询
-		private function setSystemConfigMbtilesPath(selectMbtilesPath:String):Boolean
+		//更新系统影像文件mbtiles文件路径，通过system.db查询
+		public function setSystemConfigMbtilesPath(selectMbtilesPath:String):Boolean
 		{
 			if (systemConfigUtil == null) {
 				var destinaPath:String = MainVO.SystemConfigPath + MainVO.SystemDBFileName;

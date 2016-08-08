@@ -9,6 +9,8 @@
 		<![CDATA[
 			import com.component.iconbutton.ImageButton;
 			
+			import flash.utils.setTimeout;
+			
 			import mx.collections.ArrayCollection;
 			import mx.events.FlexEvent;
 			import mx.events.ResizeEvent;
@@ -27,7 +29,7 @@
 			/**获取文件目录信息*/
 			private function getDirInfo(f:File):void
 			{
-				if(f != null)
+				if(f != null && f.exists && f.isDirectory)
 				{
 					this.currentState = LOADSTATE;
 					dm.customMbTilesDir = f;
@@ -91,7 +93,10 @@
 			
 			protected function initHandler(event:FlexEvent):void
 			{
-				this.getDirInfo(dm.defaultMbTilesDir);
+				var systemConfigPath:String = dm.getSystemConfigMbtilesPath();
+				currentDirPath.text = systemConfigPath;
+				var systemConfigFile:File = File.documentsDirectory.resolvePath(systemConfigPath)
+				this.getDirInfo(systemConfigFile);
 			}
 			
 			/**点击文件夹图标*/
@@ -113,10 +118,10 @@
 					this.dirGenerator(dirGroup, new ArrayCollection(rootDir), dirGroupClickHandler);
 				}
 				
-				this.closeDirInfo([dm.defaultMbTilesDir, dm.customMbTilesDir]);
+				this.closeDirInfo([dm.customMbTilesDir]);
 				
 				//实时刷新列表
-				dm.findOfflineMap(dm.customMbTilesDir);
+				//				dm.findOfflineMap(dm.customMbTilesDir);
 				
 				this.currentDirPath.text = dm.customMbTilesDir.nativePath;
 				var temp:Array = dm.customMbTilesDir.nativePath.split("/");
@@ -152,7 +157,8 @@
 			
 			protected function resetBtn_clickHandler(event:MouseEvent):void
 			{
-				this.getDirInfo(dm.defaultMbTilesDir);
+				var rootFile:File = File.getRootDirectories()[0];
+				getDirInfo(rootFile);
 			}
 			
 			protected function returnLastDir_clickHandler(event:MouseEvent):void
@@ -169,8 +175,20 @@
 			{
 				if(dm.customMbTilesDir != null)
 				{
-					dm.findOfflineMap(dm.customMbTilesDir);
+//					dm.findOfflineMap(dm.customMbTilesDir);
+					//更新数据库存储文件路径
+					var success:Boolean = dm.setSystemConfigMbtilesPath(dm.customMbTilesDir.nativePath);
+					if (success == false) {
+						toolTipLb.text = "更新路径失败!";
+						setTimeout(hideToolTipHandler,2000);
+					}
 				}
+			}
+			
+			private function hideToolTipHandler():void
+			{
+				toolTipLb.visible = toolTipLb.includeInLayout = false;
+				toolTipLb.text = "";
 			}
 			
 		]]>
@@ -187,12 +205,14 @@
 			<s:Label id="currentDirPath" text="请选择离线地图存放目录" 
 					 verticalAlign="middle" 
 					 width="100%" height="100%"/>
-			<s:Button id="resetBtn" label="重置目录"  
+			<s:Button id="resetBtn" label="返回根目录"  
 					  icon="{dm.iconAssembly.resetIcon}" 
 					  iconPlacement="left" 
-					  width="{164*dm.multiResolution}" height="100%"
+					  width="{194*dm.multiResolution}" height="100%"
 					  click="resetBtn_clickHandler(event)"/>
-			<s:Button id="confirmBtn" label="确定目录" width="{124*dm.multiResolution}" height="100%" click="confirmBtn_clickHandler(event)"/>
+			<s:Button id="confirmBtn" label="确定目录" width="{124*dm.multiResolution}" height="100%"
+					  click="confirmBtn_clickHandler(event)"/>
+			<s:Label id="toolTipLb" visible="false" includeInLayout="{toolTipLb.visible}"/>
 		</s:HGroup>
 		<s:Rect width="100%" height="2">
 			<s:fill>
