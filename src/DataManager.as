@@ -8,7 +8,6 @@ package
 	import com.supermap.web.mapping.OfflineStorage;
 	import com.supermap.web.mapping.TiledCachedLayer;
 	import com.util.AppEvent;
-	import com.util.Coordinate;
 	import com.util.QueryUtil;
 	import com.util.RootDirectory;
 	import com.util.SystemConfigUtil;
@@ -155,8 +154,8 @@ package
 		public function initMap(map:Map):void
 		{
 			var resolutions:Array = [];
-			for(var i:int=-1 ; i<=18;i++){
-				resolutions.push(156543.0339/2/Math.pow(2,i));
+			for(var i:int=0 ; i<=18;i++){
+				resolutions.push(156543.0339/Math.pow(2,i));
 			}
 			map.resolutions = resolutions;
 			this.map = map;
@@ -178,16 +177,16 @@ package
 		 */
 		public function addMbLayer(bVo:Object):void
 		{
-			var systemMbitlesPath:String = querySystemMbtilesFolderPath();
+			var systemConfigMbitlesPath:String = getSystemConfigMbtilesPath();
 			var layerUrl:String;
-			if (systemMbitlesPath != null || systemMbitlesPath.length > 0) {
-				var mbtilesFolder:File = File.applicationDirectory.resolvePath(systemMbitlesPath);
+			if (systemConfigMbitlesPath != null || systemConfigMbitlesPath.length > 0) {
+				var mbtilesFolder:File = File.applicationDirectory.resolvePath(systemConfigMbitlesPath);
 				if (mbtilesFolder.exists && mbtilesFolder.isDirectory) {
-					layerUrl = systemMbitlesPath.charAt(systemMbitlesPath.length -1 ) == File.separator ? systemMbitlesPath + bVo.path : systemMbitlesPath +File.separator+ bVo.path;
+					layerUrl = systemConfigMbitlesPath + bVo.path;
 				}
 			} 
 			if (layerUrl == null) {
-				layerUrl =  RootDirectory.extSDCard.resolvePath(MainVO.MbMapsRootPath+bVo.path).nativePath;
+				layerUrl =  RootDirectory.root.resolvePath(MainVO.MbMapsRootPath+bVo.path).nativePath;
 			}
 			
 			if(this.imageBaseLayer != null)
@@ -427,12 +426,11 @@ package
 		}
 		
 		//获取系统影像文件mbtiles文件路径，通过system.db查询
-		private function querySystemMbtilesFolderPath():String
+		private function getSystemConfigMbtilesPath():String
 		{
 			if (systemConfigUtil == null) {
-				
-				var destinaPath:String = MainVO.DataCacheRootPath + MainVO.SystemDBFileName;
-				var destinaSystemDbFile:File = RootDirectory.extSDCard.resolvePath(destinaPath);
+				var destinaPath:String = MainVO.SystemConfigPath + MainVO.SystemDBFileName;
+				var destinaSystemDbFile:File = RootDirectory.root.resolvePath(destinaPath);
 				if (destinaSystemDbFile.exists == false) {
 					var originSystemDbFile:File = File.applicationDirectory.resolvePath(MainVO.OriginDBPath+MainVO.SystemDBFileName);
 					destinaSystemDbFile.parent.createDirectory();
@@ -442,15 +440,36 @@ package
 				systemConfigUtil = new SystemConfigUtil(destinaSystemDbFile.nativePath);
 				systemConfigUtil.open();
 			}
-			return systemConfigUtil.queryMbtilesFolderPath();
+			var mbtilesPath:String = systemConfigUtil.queryMbtilesFolderPath();
+			mbtilesPath = mbtilesPath.charAt(mbtilesPath.length - 1) == File.separator ? mbtilesPath : mbtilesPath + File.separator;
+			return mbtilesPath;
+		}
+		
+		//获取系统影像文件mbtiles文件路径，通过system.db查询
+		private function setSystemConfigMbtilesPath(selectMbtilesPath:String):Boolean
+		{
+			if (systemConfigUtil == null) {
+				var destinaPath:String = MainVO.SystemConfigPath + MainVO.SystemDBFileName;
+				var destinaSystemDbFile:File = RootDirectory.root.resolvePath(destinaPath);
+				if (destinaSystemDbFile.exists == false) {
+					var originSystemDbFile:File = File.applicationDirectory.resolvePath(MainVO.OriginDBPath+MainVO.SystemDBFileName);
+					destinaSystemDbFile.parent.createDirectory();
+					originSystemDbFile.copyTo(destinaSystemDbFile,true);
+				}
+				
+				systemConfigUtil = new SystemConfigUtil(destinaSystemDbFile.nativePath);
+				systemConfigUtil.open();
+			}
+			var success:Boolean = systemConfigUtil.updateMbtilesFolderPath(selectMbtilesPath);
+			return success;
 		}
 		
 		/**初始化，关键字查询对象*/
 		public function getQueryUtil():QueryUtil
 		{
 			//复制查询使用的数据库 , 判断文件是否存在，不存在进行复制操作
-			var destinaPath:String = MainVO.DataCacheRootPath + MainVO.QueryDBFileName;
-			var destinaQueryDbFile:File = RootDirectory.extSDCard.resolvePath(destinaPath);
+			var destinaPath:String = getSystemConfigMbtilesPath() + MainVO.QueryDBFileName;
+			var destinaQueryDbFile:File = File.documentsDirectory.resolvePath(destinaPath);
 			if (destinaQueryDbFile.exists == false) {
 				var originQueryDbFile:File = File.applicationDirectory.resolvePath(MainVO.OriginDBPath+MainVO.QueryDBFileName);
 				destinaQueryDbFile.parent.createDirectory();

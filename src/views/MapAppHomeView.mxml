@@ -9,7 +9,6 @@
 		<![CDATA[
 			import com.component.popup.MapDirContainer;
 			import com.util.QueryUtil;
-			import com.vo.BrowseVO;
 			
 			import mx.collections.ArrayCollection;
 			import mx.core.FlexGlobals;

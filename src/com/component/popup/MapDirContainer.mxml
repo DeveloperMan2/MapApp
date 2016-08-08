@@ -165,13 +165,13 @@
 				}
 			}
 			
-			/*protected function confirmBtn_clickHandler(event:MouseEvent):void
+			protected function confirmBtn_clickHandler(event:MouseEvent):void
 			{
 				if(dm.customMbTilesDir != null)
 				{
 					dm.findOfflineMap(dm.customMbTilesDir);
 				}
-			}*/
+			}
 			
 		]]>
 	</fx:Script>
@@ -192,7 +192,7 @@
 					  iconPlacement="left" 
 					  width="{164*dm.multiResolution}" height="100%"
 					  click="resetBtn_clickHandler(event)"/>
-			<!--<s:Button id="confirmBtn" label="确定目录" width="{124*dm.multiResolution}" height="100%" click="confirmBtn_clickHandler(event)"/>-->
+			<s:Button id="confirmBtn" label="确定目录" width="{124*dm.multiResolution}" height="100%" click="confirmBtn_clickHandler(event)"/>
 		</s:HGroup>
 		<s:Rect width="100%" height="2">
 			<s:fill>

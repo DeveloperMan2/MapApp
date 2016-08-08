@@ -2,7 +2,6 @@ package  com.mapping
 {
 	import com.supermap.web.sm_internal;
 	import com.supermap.web.core.Point2D;
-	import com.supermap.web.core.Rectangle2D;
 	import com.supermap.web.mapping.ImageFormat;
 	import com.supermap.web.mapping.TiledCachedLayer;
 	import com.supermap.web.mapping.supportClasses.MetadataObj;
@@ -38,7 +37,7 @@ package  com.mapping
 				if (this._metadataObj != null)
 				{
 					this.bounds =  Coordinate.rectangle2DToMercator(this._metadataObj.bounds);
-				    this.origin = new Point2D(-20037508.3392,20037508.3392);
+					this.origin = new Point2D(-20037508.3392,  20037508.3392);
 					this._compatible = this._metadataObj.compatible;
 					this.tileSize = this._metadataObj.tileSize;
 					this.imageFormat = this._metadataObj.format.toLowerCase() == "jpg" ? (ImageFormat.JPG) : (ImageFormat.PNG);
@@ -65,21 +64,21 @@ package  com.mapping
 			}
 		}
 		
-//		override protected function getLocalTile(row:int, col:int, level:int) : ByteArray
-//		{
-//			if (this._mbtilesPath != "" && this._mbtilesHelper != null &&  this._mbtilesHelper.opened && level < 0)
-//			{
-//				return null;
-//			}
-//			var ret:ByteArray = null;
-//			var _loc_4:Number = this.resolutions[level];
-//			if (!this._compatible)
-//			{
-//				return this._mbtilesHelper.getTile(row, col, level);
-//			}
-//			return this._mbtilesHelper.getTile(Math.pow(2, level) - row - 1, col, _loc_4);
-//			
-//		}
+		//		override protected function getLocalTile(row:int, col:int, level:int) : ByteArray
+		//		{
+		//			if (this._mbtilesPath != "" && this._mbtilesHelper != null &&  this._mbtilesHelper.opened && level < 0)
+		//			{
+		//				return null;
+		//			}
+		//			var ret:ByteArray = null;
+		//			var _loc_4:Number = this.resolutions[level];
+		//			if (!this._compatible)
+		//			{
+		//				return this._mbtilesHelper.getTile(row, col, level);
+		//			}
+		//			return this._mbtilesHelper.getTile(Math.pow(2, level) - row - 1, col, _loc_4);
+		//			
+		//		}
 		
 		override protected function getLocalTile(row:int, col:int, level:int) : ByteArray
 		{
@@ -87,8 +86,8 @@ package  com.mapping
 			{
 				return null;
 			}
-			var tile_id:String = level+"/"+col+"/"+row;
-				return this._mbtilesHelper.getTile("images",tile_id,"tile_id","tile_data");
+			row = Math.pow(2, level) - row - 1;
+			return this._mbtilesHelper.getTile(row, col, level);
 		}// end function
 	}
 }
