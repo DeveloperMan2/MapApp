@@ -215,13 +215,5 @@ pip-log.txt
 #Mr Developer
 .mr.developer.cfg
 
-# Flash Builder WorkSpace files
-.metadata
-
-# Compresss files
-*.zip
-
-#Flash Project files
-.project
-.flexProperties
-.actionScriptProperties
+#Android app
+*.apk
