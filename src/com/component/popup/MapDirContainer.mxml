@@ -2,18 +2,20 @@
 <s:SkinnablePopUpContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
 						   xmlns:s="library://ns.adobe.com/flex/spark" 
 						   backgroundAlpha="1" backgroundColor="0xFFFFFF"  
-						   creationComplete="initHandler(event)"
-						   resize="resizeHandler(event)">
-	
+						   resize="resizeHandler(event)" 
+						   open="initHandler()">
 	<fx:Script>
 		<![CDATA[
 			import com.component.iconbutton.ImageButton;
+			import com.util.AppEvent;
 			
 			import flash.utils.setTimeout;
 			
 			import mx.collections.ArrayCollection;
 			import mx.events.FlexEvent;
 			import mx.events.ResizeEvent;
+			
+			import spark.events.PopUpEvent;
 			
 			private const ROOTSTATE:String = "RootState";
 			private const SUBSTATE:String = "SubState";
@@ -32,7 +34,12 @@
 				if(f != null && f.exists && f.isDirectory)
 				{
 					this.currentState = LOADSTATE;
+					if (dm.customMbTilesDir != null) 
+					{
+						this.closeDirInfo([dm.customMbTilesDir]);
+					}
 					dm.customMbTilesDir = f;
+					checkDocumentDirectory();
 					f.getDirectoryListingAsync();
 					f.addEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
 				}
@@ -91,7 +98,7 @@
 				}
 			}
 			
-			protected function initHandler(event:FlexEvent):void
+			protected function initHandler():void
 			{
 				var systemConfigPath:String = dm.getSystemConfigMbtilesPath();
 				currentDirPath.text = systemConfigPath;
@@ -119,18 +126,6 @@
 				
 				//实时刷新列表
 				//				dm.findOfflineMap(dm.customMbTilesDir);
-				
-				this.currentDirPath.text = dm.customMbTilesDir.nativePath;
-				var temp:Array = dm.customMbTilesDir.nativePath.split("/");
-				var dirName:String = temp[temp.length-1];
-				if(dirName == "")
-				{
-					this.currentState = ROOTSTATE;
-				}
-				else
-				{
-					this.currentState = SUBSTATE;
-				}
 			}
 			
 			/**计算行数*/
@@ -154,13 +149,27 @@
 			
 			protected function resetBtn_clickHandler(event:MouseEvent):void
 			{
-				//				var rootFile:File = File.getRootDirectories()[0];
 				getDirInfo(File.documentsDirectory);
+			}
+			
+			//检查当前选择的文档，如果是documentdirectory ，不能保存目录
+			private function checkDocumentDirectory():void
+			{
+				this.currentDirPath.text = dm.customMbTilesDir.nativePath;
+				var temp:Array = dm.customMbTilesDir.nativePath.split("/");
+				var dirName:String = temp[temp.length-1];
+				if(dirName == "")
+				{
+					this.currentState = ROOTSTATE;
+				}
+				else
+				{
+					this.currentState = SUBSTATE;
+				}
 			}
 			
 			protected function returnLastDir_clickHandler(event:MouseEvent):void
 			{
-				// TODO Auto-generated method stub
 				if(dm.customMbTilesDir != null && dm.customMbTilesDir.parent != null)
 				{
 					var f:File = dm.customMbTilesDir.parent;
@@ -172,11 +181,18 @@
 			{
 				if(dm.customMbTilesDir != null)
 				{
-					//					dm.findOfflineMap(dm.customMbTilesDir);
-					//更新数据库存储文件路径
-					var success:Boolean = dm.setSystemConfigMbtilesPath(dm.customMbTilesDir.nativePath);
-					if (success == false) {
-						toolTipLb.text = "更新路径失败!";
+					var path:String = dm.customMbTilesDir.nativePath;
+					var temp:Array = path.split(File.separator);
+					if (temp[temp.length-1] != "") {
+						//更新数据库存储文件路径
+						var success:Boolean = dm.setSystemConfigMbtilesPath(path);
+						toolTipLb.visible = true;
+						if (success == false) {
+							toolTipLb.text = "更新路径失败!";
+						} else {
+							toolTipLb.text = "更新路径成功!";
+							AppEvent.dispatch(AppEvent.MBTILES_PATH_CHANGE);
+						}
 						setTimeout(hideToolTipHandler,2000);
 					}
 				}
@@ -209,7 +225,6 @@
 					  click="resetBtn_clickHandler(event)"/>
 			<s:Button id="confirmBtn" label="确定目录" width="{124*dm.multiResolution}" height="100%"
 					  click="confirmBtn_clickHandler(event)"/>
-			<s:Label id="toolTipLb" visible="false" includeInLayout="{toolTipLb.visible}"/>
 		</s:HGroup>
 		<s:Rect width="100%" height="2">
 			<s:fill>
@@ -217,7 +232,9 @@
 			</s:fill>
 		</s:Rect>
 		<s:HGroup width="100%" height="{48*dm.multiResolution}" 
-				  horizontalAlign="right" verticalAlign="middle" includeIn="SubState" itemCreationPolicy="immediate">
+				   verticalAlign="middle" includeIn="SubState" itemCreationPolicy="immediate">
+			<s:Label id="toolTipLb" height="100%" visible="false" includeInLayout="{toolTipLb.visible}"/>
+			<s:Spacer width="100%"/>
 			<s:Button id="returnLastDir" label="返回上级" 
 					  icon="{dm.iconAssembly.backIcon}" 
 					  iconPlacement="left" 
