@@ -8,7 +8,6 @@ package
 	import com.supermap.web.mapping.OfflineStorage;
 	import com.supermap.web.mapping.TiledCachedLayer;
 	import com.util.AppEvent;
-	import com.util.Coordinate;
 	import com.util.QueryUtil;
 	import com.util.RootDirectory;
 	import com.util.SystemConfigUtil;
@@ -58,7 +57,7 @@ package
 		}	
 		
 		/**系统默认的离线影像数据目录*/
-		public var defaultMbTilesDir:File = null;
+		//	public var defaultMbTilesDir:File = null;
 		/**用户设定的离线影像数据目录*/
 		public var customMbTilesDir:File = null;
 		
@@ -127,7 +126,7 @@ package
 		
 		
 		/**系统配置数据查询对象*/
-		private var systemConfigUtil:SystemConfigUtil;
+		private var _systemConfigUtil:SystemConfigUtil;
 		
 		public var mapViewBounds:Rectangle2D;
 		
@@ -155,8 +154,8 @@ package
 		public function initMap(map:Map):void
 		{
 			var resolutions:Array = [];
-			for(var i:int=-1 ; i<=18;i++){
-				resolutions.push(156543.0339/2/Math.pow(2,i));
+			for(var i:int=0 ; i<=18;i++){
+				resolutions.push(156543.0339/Math.pow(2,i));
 			}
 			map.resolutions = resolutions;
 			this.map = map;
@@ -178,16 +177,10 @@ package
 		 */
 		public function addMbLayer(bVo:Object):void
 		{
-			var systemMbitlesPath:String = querySystemMbtilesFolderPath();
-			var layerUrl:String;
-			if (systemMbitlesPath != null || systemMbitlesPath.length > 0) {
-				var mbtilesFolder:File = File.applicationDirectory.resolvePath(systemMbitlesPath);
-				if (mbtilesFolder.exists && mbtilesFolder.isDirectory) {
-					layerUrl = systemMbitlesPath.charAt(systemMbitlesPath.length -1 ) == File.separator ? systemMbitlesPath + bVo.path : systemMbitlesPath +File.separator+ bVo.path;
-				}
-			} 
-			if (layerUrl == null) {
-				layerUrl =  RootDirectory.extSDCard.resolvePath(MainVO.MbMapsRootPath+bVo.path).nativePath;
+			var layerUrl:String = getSystemConfigMbtilesPath() +bVo.path;
+			var mbtilesFolder:File = File.applicationDirectory.resolvePath(layerUrl);
+			if (!mbtilesFolder.exists || mbtilesFolder.isDirectory) {
+				return
 			}
 			
 			if(this.imageBaseLayer != null)
@@ -232,11 +225,11 @@ package
 			this.vectorBaseLayer = tdtLayer;
 			this.vectorLabelBaseLayer = tdtLabelLayer;
 			
-//			var mbtilesLayer:MBTilesLayerEx = new MBTilesLayerEx();
-//			mbtilesLayer.mbtilesPath = "/storage/sdcard1/outsd/mappng15.mbtiles";
-//			mbtilesLayer.bounds =  new Rectangle2D(Coordinate.lon2Mercator(116.091343), Coordinate.lat2Mercator(29.738883), Coordinate.lon2Mercator(116.209089),Coordinate.lat2Mercator(29.760974));
-//			mbtilesLayer.origin = new Point2D(-20037508.3392, 20037508.3392);
-//			map.addLayer(mbtilesLayer);
+			//			var mbtilesLayer:MBTilesLayerEx = new MBTilesLayerEx();
+			//			mbtilesLayer.mbtilesPath = "/storage/sdcard1/outsd/mappng15.mbtiles";
+			//			mbtilesLayer.bounds =  new Rectangle2D(Coordinate.lon2Mercator(116.091343), Coordinate.lat2Mercator(29.738883), Coordinate.lon2Mercator(116.209089),Coordinate.lat2Mercator(29.760974));
+			//			mbtilesLayer.origin = new Point2D(-20037508.3392, 20037508.3392);
+			//			map.addLayer(mbtilesLayer);
 		}
 		
 		/**视图切换特效*/
@@ -287,10 +280,10 @@ package
 			//			findOfflineMap(directory);
 			
 			//直接访问内置SD卡
-			var directory:File = RootDirectory.root.resolvePath(MainVO.MbMapsRootPath); 
-			this.defaultMbTilesDir = directory;
-			
-			findOfflineMap(directory);
+			//			var directory:File = RootDirectory.root.resolvePath(MainVO.MbMapsRootPath); 
+			//			this.defaultMbTilesDir = directory;
+			//			
+			//			findOfflineMap(directory);
 		}
 		
 		//异步加载影像离线地图列表
@@ -325,7 +318,7 @@ package
 					}
 				} 
 				
-				AppEvent.dispatch(AppEvent.MB_DATACHANGE);
+				AppEvent.dispatch(AppEvent.MBTILES_PATH_CHANGE);
 			}
 		}
 		
@@ -426,37 +419,59 @@ package
 			}
 		}
 		
-		//获取系统影像文件mbtiles文件路径，通过system.db查询
-		private function querySystemMbtilesFolderPath():String
+		private function get systemConfigUtil():SystemConfigUtil
 		{
-			if (systemConfigUtil == null) {
-				
-				var destinaPath:String = MainVO.DataCacheRootPath + MainVO.SystemDBFileName;
-				var destinaSystemDbFile:File = RootDirectory.extSDCard.resolvePath(destinaPath);
+			//如果system.db没有配置路径，获取系统目录,复制查询的image.db
+			if (_systemConfigUtil == null) {
+				var destinaPath:String = MainVO.SystemConfigPath + MainVO.SystemDBFileName;
+				var destinaSystemDbFile:File = RootDirectory.root.resolvePath(destinaPath);
 				if (destinaSystemDbFile.exists == false) {
 					var originSystemDbFile:File = File.applicationDirectory.resolvePath(MainVO.OriginDBPath+MainVO.SystemDBFileName);
 					destinaSystemDbFile.parent.createDirectory();
 					originSystemDbFile.copyTo(destinaSystemDbFile,true);
 				}
 				
-				systemConfigUtil = new SystemConfigUtil(destinaSystemDbFile.nativePath);
-				systemConfigUtil.open();
+				_systemConfigUtil = new SystemConfigUtil(destinaSystemDbFile.nativePath);
+				_systemConfigUtil.open();
 			}
-			return systemConfigUtil.queryMbtilesFolderPath();
+			return _systemConfigUtil;
+		}
+		
+		//获取系统影像文件mbtiles文件路径，通过system.db查询
+		public function getSystemConfigMbtilesPath():String
+		{
+			var mbtilesPath:String = systemConfigUtil.queryMbtilesFolderPath();
+			if (mbtilesPath == File.separator || mbtilesPath.length <= 1) {
+				mbtilesPath = RootDirectory.root.resolvePath(MainVO.MbMapsRootPath).nativePath;
+				setSystemConfigMbtilesPath(mbtilesPath);
+			}
+			mbtilesPath = mbtilesPath.charAt(mbtilesPath.length - 1) == File.separator ? mbtilesPath : mbtilesPath + File.separator;
+			
+			return mbtilesPath;
+		}
+		
+		//更新系统影像文件mbtiles文件路径，通过system.db查询
+		public function setSystemConfigMbtilesPath(selectMbtilesPath:String):Boolean
+		{
+			var success:Boolean = systemConfigUtil.updateMbtilesFolderPath(selectMbtilesPath);
+			return success;
 		}
 		
 		/**初始化，关键字查询对象*/
 		public function getQueryUtil():QueryUtil
 		{
 			//复制查询使用的数据库 , 判断文件是否存在，不存在进行复制操作
-			var destinaPath:String = MainVO.DataCacheRootPath + MainVO.QueryDBFileName;
-			var destinaQueryDbFile:File = RootDirectory.extSDCard.resolvePath(destinaPath);
-			if (destinaQueryDbFile.exists == false) {
-				var originQueryDbFile:File = File.applicationDirectory.resolvePath(MainVO.OriginDBPath+MainVO.QueryDBFileName);
-				destinaQueryDbFile.parent.createDirectory();
-				originQueryDbFile.copyTo(destinaQueryDbFile,true);
+			try{
+				//路径是绝对路径
+				var destinaPath:String = getSystemConfigMbtilesPath() + MainVO.QueryDBFileName;
+				var destinaQueryDbFile:File = File.documentsDirectory.resolvePath(destinaPath);
+				if (destinaQueryDbFile.exists == false) {
+					var originQueryDbFile:File = File.applicationDirectory.resolvePath(MainVO.OriginDBPath+MainVO.QueryDBFileName);
+					destinaQueryDbFile.parent.createDirectory();
+					originQueryDbFile.copyTo(destinaQueryDbFile,true);
+				}
+			} catch(e:Error) {
 			}
-			
 			var queryUtil:QueryUtil = new QueryUtil(destinaQueryDbFile.nativePath);
 			queryUtil.open();
 			return queryUtil;

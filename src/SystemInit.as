@@ -21,7 +21,7 @@ package
 			{	
 				var paths:Array = [
 					MainVO.MbMapsRootPath,
-					MainVO.DataCacheRootPath,
+					MainVO.SystemConfigPath,
 					MainVO.CachesRootPath
 				];	
 				

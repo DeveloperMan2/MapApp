@@ -1,7 +1,7 @@
 package com.mapping
 {
-	import com.supermap.web.mapping.supportClasses.MetadataObj;
 	import com.supermap.web.sm_internal;
+	import com.supermap.web.mapping.supportClasses.MetadataObj;
 	
 	import flash.data.SQLConnection;
 	import flash.data.SQLMode;
@@ -35,9 +35,9 @@ package com.mapping
 		public function open() : Boolean
 		{
 			var dbfile:File;
-//			if (_dbFilePath.search(":") != -1) {
-//				dbfile = File.documentsDirectory.resolvePath(
-//			}
+			//			if (_dbFilePath.search(":") != -1) {
+			//				dbfile = File.documentsDirectory.resolvePath(
+			//			}
 			dbfile = File.documentsDirectory.resolvePath(this._dbFilePath);
 			this.dbConn = new SQLConnection();
 			try
@@ -229,27 +229,29 @@ package com.mapping
 			return null;
 		}		
 		
-		public function getTile(tableName:String,tile_id:String,tile_id_name:String, tileDataName:String) : ByteArray
+		public function getTile(row:int, col:int, level:int) : ByteArray
 		{
-			var result:SQLResult;
-			var data:Array;
-			var byteArray:ByteArray;
-			var tile_id:String = tile_id;
-			var stmtTemp:SQLStatement = new SQLStatement();
-			var sql:String;
-			if (_bytefromIsAS)
-			{
-				sql = "SELECT "+ tileDataName +" FROM "+tableName  + " where "+tile_id_name +" like :tile_id ";
-			}
-			else
-			{
-				sql = "SELECT CAST("+ tileDataName+" AS ByteArray) AS tile_data " +" FROM "+tableName  + " where "+tile_id_name +" like  :tile_id";
-			}
-			stmtTemp.text = sql;
-			stmtTemp.parameters[":tile_id"] = tile_id;
-			stmtTemp.sqlConnection = this.dbConn;
 			try
 			{
+					var result:SQLResult;
+				var data:Array;
+				var byteArray:ByteArray;
+				var tile_id:String = tile_id;
+				var stmtTemp:SQLStatement = new SQLStatement();
+				var sql:String;
+				if (_bytefromIsAS)
+				{
+					sql = "select tile_data from tiles where zoom_level = :level and tile_column = :col and tile_row = :row";
+				}
+				else
+				{
+					sql = "select cast( tile_data as ByteArray) as tile_data from tiles where zoom_level = :level and tile_column = :col and tile_row = :row";
+				}
+				stmtTemp.text = sql;
+				stmtTemp.parameters[":level"] = level;
+				stmtTemp.parameters[":col"] = col;
+				stmtTemp.parameters[":row"] = row;
+				stmtTemp.sqlConnection = this.dbConn;
 				stmtTemp.execute();
 				result = stmtTemp.getResult();
 				data = result.data;
@@ -260,17 +262,18 @@ package com.mapping
 				}
 				else
 				{
-					var bgSql:String;
 					if (_bytefromIsAS)
 					{
-						bgSql = "SELECT "+ tileDataName +" FROM "+tableName  + " where "+tile_id_name +" like '%background%' ";
+						sql = "select tile_data from images where tile_id = :tile_id";
 					}
 					else
 					{
-						bgSql = "SELECT CAST("+ tileDataName+" AS ByteArray) AS tile_data " +" FROM "+tableName  + " where "+tile_id_name +" like '%background%' ";
+						sql = "select cast( tile_data as ByteArray) as tile_data from images where tile_id = :tile_id";
 					}
-					stmtTemp.text = bgSql;
-					delete stmtTemp.parameters[":tile_id"];
+					stmtTemp = new SQLStatement();
+					stmtTemp.text = sql;
+					stmtTemp.parameters[":tile_id"] = level+"/"+col +"/"+row;
+					stmtTemp.sqlConnection = this.dbConn;
 					stmtTemp.execute();
 					result = stmtTemp.getResult();
 					data = result.data;
@@ -279,8 +282,8 @@ package com.mapping
 						byteArray = result.data[0].tile_data;
 						return byteArray;
 					}
-					return null;
 				}
+				return null;
 			}
 			catch (error:SQLError)
 			{

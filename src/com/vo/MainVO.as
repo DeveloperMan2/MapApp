@@ -9,8 +9,8 @@ package com.vo
 		
 		private static const RootPath:String = "MapApp"+File.separator;
 		
-		/**数据离线缓存路径*/
-		public static const DataCacheRootPath:String = RootPath + "Datas"+File.separator;
+		/**系统配置数据库文件路径*/
+		public static const SystemConfigPath:String = RootPath + "Configs"+File.separator;
 		
 		/**在线地图缓存路径*/
 		public static const CachesRootPath:String = RootPath + "MapCaches"+File.separator;

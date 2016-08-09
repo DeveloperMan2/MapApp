@@ -64,7 +64,7 @@ package com.util
 			{	
 				try
 				{
-					f = f.resolvePath( MainVO.DataCacheRootPath + File.separator + BaseVO.SystemDbName);						
+					f = f.resolvePath( MainVO.SystemConfigPath + File.separator + BaseVO.SystemDbName);						
 				
 					/**测试目录是否可写入*/
 					var fnew:File = new File(path);

@@ -8,8 +8,8 @@
 	<fx:Script>
 		<![CDATA[
 			import com.component.popup.MapDirContainer;
+			import com.util.AppEvent;
 			import com.util.QueryUtil;
-			import com.vo.BrowseVO;
 			
 			import mx.collections.ArrayCollection;
 			import mx.core.FlexGlobals;
@@ -30,9 +30,8 @@
 			
 			protected function creationCompleteHandler(event:FlexEvent):void
 			{
+				AppEvent.addListener(AppEvent.MBTILES_PATH_CHANGE, mbtilesPathChangeHandler);
 				dm.initMap(this.map);
-				
-				dm.initAppLayerCol();
 				
 				dm.addTdtLayer();
 				
@@ -43,38 +42,21 @@
 				searchBtn_clickHandler();
 			}
 			
-			protected function mbLayerNameList_changeHandler():void
+			//修改mbtiles文件夹，重新获取查询对象
+			private function mbtilesPathChangeHandler(event:AppEvent):void
 			{
-				loadMbLayerHandler(null);
+				setMapDir_clickHandler();
+				//初始化查询对象
+				queryUtil = dm.getQueryUtil();
+				
+				//初始化获取列表
+				searchBtn_clickHandler();
 			}
 			
-			private function loadMbLayerHandler(event:TimerEvent):void
+			protected function mbLayerNameList_changeHandler():void
 			{
-				this.mbLayerNameList.dataProvider = null;
-				var bVo:BrowseVO = null;
-				if(dm.ImgLayerArrCol != null && dm.ImgLayerArrCol.length > 0)
-				{
-					bVo = dm.ImgLayerArrCol.getItemAt(0) as BrowseVO;
-					
-					if(bVo != null)
-					{
-						if(dm.imageBaseLayer != null)
-						{
-							dm.imageBaseLayer.visible = true;
-						}
-						
-						dm.addMbLayer(bVo);
-					}
-					
-					this.mbLayerNameList.dataProvider = dm.ImgLayerArrCol;
-					this.mbLayerNameList.labelField = "layerName";
-				}
-				else
-				{
-					if(dm.imageBaseLayer != null)
-					{
-						dm.imageBaseLayer.visible = false;
-					}
+				if (mbLayerNameList.selectedItem != null){
+					dm.addMbLayer(mbLayerNameList.selectedItem);
 				}
 			}
 			
@@ -119,6 +101,7 @@
 				keyWord = StringUtil.trim(keyWord);
 				var resultList:Array = queryUtil.queryByName(keyWord);
 				mbLayerNameList.dataProvider = new ArrayCollection(resultList);
+				queryResultInfoLb.text = "共" + resultList.length +"记录";
 			}
 			
 			//-------------------------------------------
@@ -152,7 +135,7 @@
 			}
 			
 			//设置离线地图目录
-			protected function setMapDir_clickHandler(event:MouseEvent):void
+			protected function setMapDir_clickHandler():void
 			{
 				if (popup != null && popup.isOpen)  
 				{  
@@ -174,6 +157,16 @@
 				}
 			}
 			
+			protected function ImageAlpha_clickHandler(event:MouseEvent):void
+			{
+				imageAlphaSlider.visible = !imageAlphaSlider.visible;
+			}
+			
+			protected function imageAlphaSlider_changeHandler(event:Event):void
+			{
+				dm.imageBaseLayer.alpha = imageAlphaSlider.value;
+			}
+			
 		]]>
 	</fx:Script>
 	<s:states>
@@ -189,11 +182,10 @@
 				  includeIn="QueryState"/>
 	</s:navigationContent>
 	<s:actionContent>
-		<s:Button id="setMapDir" icon="{dm.iconAssembly.userIcon}" toolTip="设置地图目录" click="setMapDir_clickHandler(event)"/>
+		<s:Button id="setMapDir" icon="{dm.iconAssembly.userIcon}" toolTip="设置地图目录" click="setMapDir_clickHandler()"/>
 	</s:actionContent>
 	<!--<s:HGroup width="100%" height="100%">-->
-	<supermap:Map id="map" width="100%" height="100%">
-	</supermap:Map>
+	<supermap:Map id="map" width="100%" height="100%"/>
 	<s:Group height="100%"
 			 includeIn="QueryState" left="0">
 		<s:Rect width="100%" height="100%">
@@ -201,23 +193,24 @@
 				<s:SolidColor color="#FFFFFF"/>
 			</s:fill>
 		</s:Rect>
-		<s:VGroup height="100%" width="{300*dm.mapUIScale}" paddingLeft="5" paddingRight="5"
+		<s:VGroup height="100%" width="{300*dm.mapUIScale}" paddingLeft="{5*dm.multiResolution}"
+				  paddingTop="{5*dm.multiResolution}" paddingRight="{5*dm.multiResolution}"
 				  horizontalAlign="right" verticalAlign="top">
-			<s:HGroup width="100%" gap="6" horizontalAlign="left" verticalAlign="middle">
+			<s:HGroup width="100%" gap="{5*dm.multiResolution}" horizontalAlign="left" verticalAlign="middle">
 				<s:TextInput id="dataKeyWord" prompt="输入查询关键字" width="100%"/>
 				<s:Button id="searchBtn" height="{48*dm.multiResolution}"
 						  icon="{dm.iconAssembly.searchIcon}" 
 						  iconPlacement="left"
 						  click="searchBtn_clickHandler()"/>
 			</s:HGroup>
-			<s:HGroup width="100%" gap="6" horizontalAlign="left" verticalAlign="bottom">
-				<s:Label id="queryResultInfoLb" text="" width="100%"/>
-			</s:HGroup>	
-			<s:Rect width="100%" height="2">
+			<s:Rect width="100%" height="1">
 				<s:fill>
-					<s:SolidColor color="#000000"/>
+					<s:SolidColor color="#333333"/>
 				</s:fill>
 			</s:Rect>
+			<s:HGroup width="100%" gap="6" horizontalAlign="left" verticalAlign="bottom">
+				<s:Label id="queryResultInfoLb"  width="100%"/>
+			</s:HGroup>	
 			<s:List id="mbLayerNameList" width="100%" height="100%"
 					requireSelection="true" selectedIndex="0"
 					textAlign="left"  labelField="name"
@@ -234,5 +227,12 @@
 				  icon="{dm.iconAssembly.zoomInIcon}" styleName="OperationButton" click="zoomInBtn_clickHandler(event)"/>
 		<s:Button id="zoomOutBtn" 
 				  icon="{dm.iconAssembly.zoomOutIcon}" styleName="OperationButton" click="zoomOutBtn_clickHandler(event)"/>
+		<s:VGroup horizontalAlign="right">
+			<s:Button id="ImageAlpha" 
+					  icon="{dm.iconAssembly.userIcon}" styleName="OperationButton" click="ImageAlpha_clickHandler(event)"/>
+			<s:HSlider id="imageAlphaSlider" visible="false" includeInLayout="{imageAlphaSlider.visible}" 
+					   minimum="0" maximum="1"  value="1"  stepSize="0.1" width="{200*dm.multiResolution}"  
+					   change="imageAlphaSlider_changeHandler(event)"/>
+		</s:VGroup>
 	</s:VGroup>
 </s:View>
