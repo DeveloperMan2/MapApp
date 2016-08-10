@@ -2,13 +2,18 @@ package  com.mapping
 {
 	import com.supermap.web.sm_internal;
 	import com.supermap.web.core.Point2D;
+	import com.supermap.web.core.Rectangle2D;
 	import com.supermap.web.mapping.ImageFormat;
 	import com.supermap.web.mapping.TiledCachedLayer;
 	import com.supermap.web.mapping.supportClasses.MetadataObj;
-	import com.supermap.web.utils.CoordinateReferenceSystem;
 	import com.util.Coordinate;
 	
+	import flash.display.BitmapData;
 	import flash.utils.ByteArray;
+	
+	import mx.graphics.codec.PNGEncoder;
+	
+	import spark.components.Image;
 	
 	use namespace sm_internal;
 	
@@ -36,12 +41,15 @@ package  com.mapping
 				this._metadataObj = this._mbtilesHelper.readMetadataObj();
 				if (this._metadataObj != null)
 				{
-					this.bounds =  Coordinate.rectangle2DToMercator(this._metadataObj.bounds);
-					this.origin = new Point2D(-20037508.3392,  20037508.3392);
-					this._compatible = this._metadataObj.compatible;
-					this.tileSize = this._metadataObj.tileSize;
+					if (this._metadataObj.bounds.width <= 360) {
+						this.bounds =  Coordinate.rectangle2DToMercator(this._metadataObj.bounds);
+					} else {
+						this.bounds  = this._metadataObj.bounds;
+					}
+					this.origin = new Point2D(-20037508.342787,  20037508.342787);
+					this.tileSize = 256; //this._metadataObj.tileSize ;
 					this.imageFormat = this._metadataObj.format.toLowerCase() == "jpg" ? (ImageFormat.JPG) : (ImageFormat.PNG);
-					this.CRS = new CoordinateReferenceSystem(this._metadataObj.crs_wkid, this._metadataObj.unit);
+					//					this.CRS = new CoordinateReferenceSystem(this._metadataObj.crs_wkid, this._metadataObj.unit);
 					setLoaded(true);					
 				}
 				else
@@ -64,21 +72,6 @@ package  com.mapping
 			}
 		}
 		
-		//		override protected function getLocalTile(row:int, col:int, level:int) : ByteArray
-		//		{
-		//			if (this._mbtilesPath != "" && this._mbtilesHelper != null &&  this._mbtilesHelper.opened && level < 0)
-		//			{
-		//				return null;
-		//			}
-		//			var ret:ByteArray = null;
-		//			var _loc_4:Number = this.resolutions[level];
-		//			if (!this._compatible)
-		//			{
-		//				return this._mbtilesHelper.getTile(row, col, level);
-		//			}
-		//			return this._mbtilesHelper.getTile(Math.pow(2, level) - row - 1, col, _loc_4);
-		//			
-		//		}
 		
 		override protected function getLocalTile(row:int, col:int, level:int) : ByteArray
 		{
@@ -87,7 +80,28 @@ package  com.mapping
 				return null;
 			}
 			row = Math.pow(2, level) - row - 1;
-			return this._mbtilesHelper.getTile(row, col, level);
+			var byteArray:ByteArray = this._mbtilesHelper.getTile(row, col, level);
+//			if (byteArray !=null) {
+//				var pngEncode:PNGEncoder = new PNGEncoder();
+//				byteArray = pngEncode.encodeByteArray(byteArray,256,256,true);
+//			}
+			return byteArray;
 		}// end function
+		
+		public static function ByteArrayToBitmap(byArr:ByteArray):ByteArray{   
+			if(byArr==null){   
+				return null;   
+			}   
+			//读取出存入时图片的高和宽,因为是最后存入的数据,所以需要到尾部读取   
+			var bmd:ByteArray= byArr;   
+			var image:Image = new Image()
+			image.source = bmd;
+			var srcBmp:BitmapData = new BitmapData( 256, 256 );   
+			//将组件读取为BitmapData对象，bitmagData的数据源   
+			srcBmp.draw( image );   
+			var encoder:PNGEncoder = new PNGEncoder(); 
+			var bytes:ByteArray = encoder.encode(srcBmp); 
+			return bytes; 
+		}   
 	}
 }

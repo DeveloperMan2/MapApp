@@ -233,7 +233,7 @@ package com.mapping
 		{
 			try
 			{
-					var result:SQLResult;
+			    var result:SQLResult;
 				var data:Array;
 				var byteArray:ByteArray;
 				var tile_id:String = tile_id;
@@ -259,29 +259,6 @@ package com.mapping
 				{
 					byteArray = result.data[0].tile_data;
 					return byteArray;
-				}
-				else
-				{
-					if (_bytefromIsAS)
-					{
-						sql = "select tile_data from images where tile_id = :tile_id";
-					}
-					else
-					{
-						sql = "select cast( tile_data as ByteArray) as tile_data from images where tile_id = :tile_id";
-					}
-					stmtTemp = new SQLStatement();
-					stmtTemp.text = sql;
-					stmtTemp.parameters[":tile_id"] = level+"/"+col +"/"+row;
-					stmtTemp.sqlConnection = this.dbConn;
-					stmtTemp.execute();
-					result = stmtTemp.getResult();
-					data = result.data;
-					if (data != null && data.length == 1)
-					{
-						byteArray = result.data[0].tile_data;
-						return byteArray;
-					}
 				}
 				return null;
 			}
@@ -402,7 +379,7 @@ package com.mapping
 				data = result.data;
 				if (data.length < 5)
 				{
-					this._status = "信息确实";
+					this._status = "信息缺失";
 					return null;
 				}
 				metadata = new MetadataObj();
@@ -474,6 +451,11 @@ package com.mapping
 						case "tile_height":
 						{
 							metadata.tileSize = int(value);
+							break;
+						}
+						case "scale":
+						{
+							metadata.tileSize = int(value) *metadata.tileSize;
 							break;
 						}
 						default:

@@ -4,6 +4,7 @@ package
 	import com.mapping.MBTilesLayerEx;
 	import com.mapping.TiledTDTLayer;
 	import com.supermap.web.core.Rectangle2D;
+	import com.supermap.web.mapping.MBTilesLayer;
 	import com.supermap.web.mapping.Map;
 	import com.supermap.web.mapping.OfflineStorage;
 	import com.supermap.web.mapping.TiledCachedLayer;
@@ -115,7 +116,7 @@ package
 		public var mapRect:Rectangle2D = null;
 		
 		/**影像底图*/
-		public var imageBaseLayer:TiledCachedLayer=null;
+		public var imageBaseLayer:MBTilesLayerEx=null;
 		/**矢量底图*/
 		public var vectorBaseLayer:TiledCachedLayer = null;
 		/**矢量底图标注*/
@@ -183,19 +184,17 @@ package
 				return
 			}
 			
-			if(this.imageBaseLayer != null)
+			var layerAlpha:int = 1;
+			if(this.imageBaseLayer != null && map.getLayer(imageBaseLayer.id) != null)
 			{
-				(this.imageBaseLayer as MBTilesLayerEx).mbtilesPath =layerUrl
-				this.map.refresh();
+				layerAlpha = imageBaseLayer.alpha;
+				this.map.removeLayer(imageBaseLayer);
 			}
-			else
-			{
-				var mbtilesLayer:MBTilesLayerEx;
-				mbtilesLayer = new MBTilesLayerEx();
-				mbtilesLayer.mbtilesPath = layerUrl;
-				this.map.addLayer(mbtilesLayer);
-				this.imageBaseLayer = mbtilesLayer;
-			}
+			imageBaseLayer = new MBTilesLayerEx();
+			imageBaseLayer.alpha = layerAlpha;
+			imageBaseLayer.id = "imageBaseLayer";
+			imageBaseLayer.mbtilesPath = layerUrl;
+			this.map.addLayer(imageBaseLayer);
 			dm.resetMapPosition(imageBaseLayer.bounds);
 		}
 		
