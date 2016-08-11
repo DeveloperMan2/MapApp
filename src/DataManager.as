@@ -54,7 +54,10 @@ package
 			{
 				throw new Error("不能通过该方式创建类型的实例，请采用静态方法getInstance()初始化对象！");
 			}
-		}	
+		}
+		
+		/**APP标题*/
+		public var systemTitle:String="地图浏览";
 		
 		/**系统默认的离线影像数据目录*/
 		//	public var defaultMbTilesDir:File = null;
@@ -182,7 +185,7 @@ package
 			if (!mbtilesFolder.exists || mbtilesFolder.isDirectory) {
 				return
 			}
-			
+			this.systemTitle = bVo["name"];//设置应用标题
 			if(this.imageBaseLayer != null)
 			{
 				(this.imageBaseLayer as MBTilesLayerEx).mbtilesPath =layerUrl
