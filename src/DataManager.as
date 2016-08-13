@@ -4,7 +4,6 @@ package
 	import com.mapping.MBTilesLayerEx;
 	import com.mapping.TiledTDTLayer;
 	import com.supermap.web.core.Rectangle2D;
-	import com.supermap.web.mapping.MBTilesLayer;
 	import com.supermap.web.mapping.Map;
 	import com.supermap.web.mapping.OfflineStorage;
 	import com.supermap.web.mapping.TiledCachedLayer;

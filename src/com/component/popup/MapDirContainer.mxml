@@ -226,12 +226,12 @@
 				   verticalAlign="middle" includeIn="SubState" itemCreationPolicy="immediate">
 			<s:Label id="toolTipLb" height="100%" visible="false" includeInLayout="{toolTipLb.visible}"/>
 			<s:Spacer width="100%"/>
-			<s:Button id="resetBtn" label="返回根目录"  
+			<s:Button id="resetBtn" label="根目录"  
 					  icon="{dm.iconAssembly.resetIcon}" 
 					  iconPlacement="left" 
 					  width="{192*dm.multiResolution}" height="100%"
 					  click="resetBtn_clickHandler(event)"/>
-			<s:Button id="returnLastDir" label="返回上一级" 
+			<s:Button id="returnLastDir" label="上一级" 
 					  icon="{dm.iconAssembly.backIcon}" 
 					  iconPlacement="left" 
 					  width="{192*dm.multiResolution}" height="100%"

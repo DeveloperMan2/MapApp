@@ -47,4 +47,14 @@ s|List
 	skinClass:ClassReference("com.skin.OperationButtonSkin")
 }
 
+.itemStyle
+{
+	color: #0e0e0e;
+}
+
+.messageStyle
+{
+	color: #686A70;
+}
+
 

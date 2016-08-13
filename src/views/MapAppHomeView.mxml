@@ -157,16 +157,37 @@
 				}
 			}
 			
-			protected function ImageAlpha_clickHandler(event:MouseEvent):void
+			/*protected function ImageAlpha_clickHandler(event:MouseEvent):void
 			{
-				imageAlphaSlider.visible = !imageAlphaSlider.visible;
-			}
+			imageAlphaSlider.visible = !imageAlphaSlider.visible;
+			}*/
 			
 			protected function imageAlphaSlider_changeHandler(event:Event):void
 			{
 				dm.imageBaseLayer.alpha = imageAlphaSlider.value;
 			}
 			
+			[Bindable]
+			private var mapLevelCol:ArrayCollection = new ArrayCollection([
+				{name:"所有级别", value:-1},
+				{name:"第1级", value:1},
+				{name:"第2级", value:2},
+				{name:"第3级", value:3},
+				{name:"第4级", value:4},
+				{name:"第5级", value:5},
+				{name:"第6级", value:6},
+				{name:"第7级", value:7},
+				{name:"第8级", value:8},
+				{name:"第9级", value:9},
+				{name:"第10级", value:10},
+				{name:"第11级", value:11},
+				{name:"第12级", value:12},
+				{name:"第13级", value:13},
+				{name:"第14级", value:14},
+				{name:"第15级", value:15},
+				{name:"第16级", value:16},
+				{name:"第17级", value:17}
+			]);
 		]]>
 	</fx:Script>
 	<s:states>
@@ -190,30 +211,73 @@
 			 includeIn="QueryState" left="0">
 		<s:Rect width="100%" height="100%">
 			<s:fill>
-				<s:SolidColor color="#FFFFFF"/>
+				<s:SolidColor color="#FFFFFF" alpha="0.8"/>
 			</s:fill>
 		</s:Rect>
-		<s:VGroup height="100%" width="{300*dm.mapUIScale}" paddingLeft="{5*dm.multiResolution}"
+		<s:VGroup height="100%" width="{320*dm.mapUIScale}" paddingLeft="{5*dm.multiResolution}"
 				  paddingTop="{5*dm.multiResolution}" paddingRight="{5*dm.multiResolution}"
 				  horizontalAlign="right" verticalAlign="top">
 			<s:HGroup width="100%" gap="{5*dm.multiResolution}" horizontalAlign="left" verticalAlign="middle">
+				<s:Label text="关键字：" height="100%" verticalAlign="middle"/>
 				<s:TextInput id="dataKeyWord" prompt="输入查询关键字" width="100%"/>
-				<s:Button id="searchBtn" height="{48*dm.multiResolution}"
-						  icon="{dm.iconAssembly.searchIcon}" 
+			</s:HGroup>
+			<s:HGroup width="100%" gap="{5*dm.multiResolution}" horizontalAlign="left" verticalAlign="middle">
+				<s:CalloutButton id="conditionSetting" label="高级查询设置>>" 
+								 width="{172*dm.multiResolution}"
+								 iconPlacement="right" 
+								 horizontalPosition="auto"
+								 verticalPosition="auto"
+								 color="#0000FF"
+								 fontWeight="normal"
+								 height="{48*dm.multiResolution}">
+					<s:calloutContent>
+						<s:HGroup width="100%" height="100%">
+							<s:VGroup>
+								<s:Label text="地图级别" verticalAlign="middle" fontWeight="bold" textAlign="center"
+										 height="{48*dm.multiResolution}" width="{144*dm.multiResolution}"/>
+								<s:SpinnerListContainer width="100%" horizontalCenter="0" top="20" bottom="20">
+									<s:SpinnerList id="mapLevelId" height="100%" width="100%" 
+												   selectedIndex="0"
+												   typicalItem="999" dataProvider="{mapLevelCol}" labelField="name">
+									</s:SpinnerList>
+								</s:SpinnerListContainer>
+							</s:VGroup>
+							<s:VGroup>
+								<s:Label text="查询区域" verticalAlign="middle" fontWeight="bold" textAlign="center"
+										 height="{48*dm.multiResolution}" width="{256*dm.multiResolution}"/>
+								<s:SpinnerListContainer width="100%" horizontalCenter="0" top="20" bottom="20">
+									<s:SpinnerList id="cityId" height="100%" width="100%" typicalItem="999"
+												   selectedIndex="0">
+									</s:SpinnerList>
+									<s:SpinnerList id="countyId" height="100%" width="100%" typicalItem="999"
+												   selectedIndex="0">
+									</s:SpinnerList>
+								</s:SpinnerListContainer>
+							</s:VGroup>
+						</s:HGroup>
+					</s:calloutContent>
+				</s:CalloutButton>
+				<s:Spacer width="100%"/>
+				<s:Button id="searchBtn"
+						  label="查询"
+						  height="{48*dm.multiResolution}" width="{120*dm.multiResolution}"
+						  icon="{dm.iconAssembly.queryIcon}" 
 						  iconPlacement="left"
 						  click="searchBtn_clickHandler()"/>
 			</s:HGroup>
-			<s:Rect width="100%" height="1">
+			<s:Rect width="100%" height="2">
 				<s:fill>
 					<s:SolidColor color="#333333"/>
 				</s:fill>
 			</s:Rect>
 			<s:HGroup width="100%" gap="6" horizontalAlign="left" verticalAlign="bottom">
-				<s:Label id="queryResultInfoLb"  width="100%"/>
+				<s:Label id="queryResultInfoLb" verticalAlign="middle"
+						 width="100%" height="{48*dm.multiResolution}"/>
 			</s:HGroup>	
 			<s:List id="mbLayerNameList" width="100%" height="100%"
 					requireSelection="true" selectedIndex="0"
-					textAlign="left"  labelField="name"
+					textAlign="left"  
+					itemRenderer="com.renderer.LayerItemRenderer"
 					valueCommit="mbLayerNameList_changeHandler()">							
 			</s:List>
 		</s:VGroup>
@@ -227,12 +291,16 @@
 				  icon="{dm.iconAssembly.zoomInIcon}" styleName="OperationButton" click="zoomInBtn_clickHandler(event)"/>
 		<s:Button id="zoomOutBtn" 
 				  icon="{dm.iconAssembly.zoomOutIcon}" styleName="OperationButton" click="zoomOutBtn_clickHandler(event)"/>
-		<s:VGroup horizontalAlign="right">
-			<s:Button id="ImageAlpha" 
-					  icon="{dm.iconAssembly.userIcon}" styleName="OperationButton" click="ImageAlpha_clickHandler(event)"/>
-			<s:HSlider id="imageAlphaSlider" visible="false" includeInLayout="{imageAlphaSlider.visible}" 
-					   minimum="0" maximum="1"  value="1"  stepSize="0.1" width="{200*dm.multiResolution}"  
-					   change="imageAlphaSlider_changeHandler(event)"/>
-		</s:VGroup>
+		<!--<s:VGroup horizontalAlign="right">
+		<s:Button id="ImageAlpha" 
+		icon="{dm.iconAssembly.userIcon}" styleName="OperationButton" click="ImageAlpha_clickHandler(event)"/>
+		<s:HSlider id="imageAlphaSlider" visible="false" includeInLayout="{imageAlphaSlider.visible}" 
+		minimum="0" maximum="1"  value="1"  stepSize="0.1" width="{200*dm.multiResolution}"  
+		change="imageAlphaSlider_changeHandler(event)"/>
+		</s:VGroup>-->
 	</s:VGroup>
+	<s:HSlider id="imageAlphaSlider" bottom="12" right="12"
+			   minimum="0" maximum="1"  value="1"  stepSize="0.1" 
+			   width="{200*dm.multiResolution}"  height="{48*dm.multiResolution}"
+			   change="imageAlphaSlider_changeHandler(event)"/>
 </s:View>

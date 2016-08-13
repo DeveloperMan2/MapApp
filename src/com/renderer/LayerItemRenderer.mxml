@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				styleName="itemStyle"
+				height="{64*dm.multiResolution}" width="100%">	
+	<fx:Script>
+		<![CDATA[
+			
+			
+			[Bindable]
+			private var dm:DataManager = DataManager.getInstance();
+			private function myIconFunction(item:Object):Object
+			{
+				return dm.iconAssembly.layerIcon;
+			}
+			
+			override public function set data(value:Object):void
+			{
+				super.data = value;
+				
+				//名称字段
+				this.lbl.text = data["name"];
+				
+				this.messageField.text = data["location"];
+			}			
+		]]>
+	</fx:Script>	
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="hovered" />
+		<s:State name="selected" />
+	</s:states>
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:SolidColor color="0xFFFFFF"
+						  color.hovered="0xE6E6E6"
+						  color.selected="0xE6E6E6"
+						  alpha="1"/>
+		</s:fill>
+	</s:Rect>
+	<s:VGroup  width="100%" verticalAlign="middle" height="100%">
+		<s:HGroup verticalAlign="middle" width="100%"
+				  paddingLeft="0" paddingRight="0" height="100%">
+			<s:Image id="img" source="{dm.iconAssembly.pointIcon}" height="100%" backgroundAlpha="0"/>
+			<s:VGroup  width="100%" height="100%" horizontalAlign="left">
+				<s:Label id="lbl" color="#0f0f0f" height="100%" backgroundAlpha="0"/>
+				<s:Label id="messageField" height="100%"  backgroundAlpha="0"
+						 right="{24*dm.multiResolution}" styleName="messageStyle" />
+			</s:VGroup>
+		</s:HGroup>
+		<s:Rect height="2" width="100%" bottom="0">
+			<s:fill>
+				<s:SolidColor color="#DDDDDD"/>				
+			</s:fill>
+		</s:Rect>
+	</s:VGroup>	
+</s:ItemRenderer>
