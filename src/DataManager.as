@@ -223,12 +223,6 @@ package
 			
 			this.vectorBaseLayer = tdtLayer;
 			this.vectorLabelBaseLayer = tdtLabelLayer;
-			
-			//			var mbtilesLayer:MBTilesLayerEx = new MBTilesLayerEx();
-			//			mbtilesLayer.mbtilesPath = "/storage/sdcard1/outsd/mappng15.mbtiles";
-			//			mbtilesLayer.bounds =  new Rectangle2D(Coordinate.lon2Mercator(116.091343), Coordinate.lat2Mercator(29.738883), Coordinate.lon2Mercator(116.209089),Coordinate.lat2Mercator(29.760974));
-			//			mbtilesLayer.origin = new Point2D(-20037508.3392, 20037508.3392);
-			//			map.addLayer(mbtilesLayer);
 		}
 		
 		/**视图切换特效*/

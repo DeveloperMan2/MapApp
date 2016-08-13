@@ -177,7 +177,8 @@
 		<s:Label text="地图应用" width="100%" height="100%" textAlign="center" verticalAlign="middle" backgroundAlpha="0"/>
 	</s:titleContent>
 	<s:navigationContent>	
-		<s:Button id="ShowQueryPanel" toolTip="显示查询面板" icon="{dm.iconAssembly.listIcon}" click="ShowQueryPanel_clickHandler(event)"/>
+		<s:Button id="ShowQueryPanel" toolTip="显示查询面板" icon="{dm.iconAssembly.listIcon}" click="ShowQueryPanel_clickHandler(event)"
+				 includeIn="BrowseState" />
 		<s:Button id="HideQueryPanel" toolTip="隐藏查询面板" icon="{dm.iconAssembly.returnIcon}" click="HideQueryPanel_clickHandler(event)" 
 				  includeIn="QueryState"/>
 	</s:navigationContent>

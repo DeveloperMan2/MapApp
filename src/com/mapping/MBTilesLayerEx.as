@@ -72,7 +72,6 @@ package  com.mapping
 			}
 		}
 		
-		
 		override protected function getLocalTile(row:int, col:int, level:int) : ByteArray
 		{
 			if (this._mbtilesPath != "" && this._mbtilesHelper != null &&  this._mbtilesHelper.opened && map.level <0)
@@ -81,27 +80,7 @@ package  com.mapping
 			}
 			row = Math.pow(2, level) - row - 1;
 			var byteArray:ByteArray = this._mbtilesHelper.getTile(row, col, level);
-//			if (byteArray !=null) {
-//				var pngEncode:PNGEncoder = new PNGEncoder();
-//				byteArray = pngEncode.encodeByteArray(byteArray,256,256,true);
-//			}
 			return byteArray;
 		}// end function
-		
-		public static function ByteArrayToBitmap(byArr:ByteArray):ByteArray{   
-			if(byArr==null){   
-				return null;   
-			}   
-			//读取出存入时图片的高和宽,因为是最后存入的数据,所以需要到尾部读取   
-			var bmd:ByteArray= byArr;   
-			var image:Image = new Image()
-			image.source = bmd;
-			var srcBmp:BitmapData = new BitmapData( 256, 256 );   
-			//将组件读取为BitmapData对象，bitmagData的数据源   
-			srcBmp.draw( image );   
-			var encoder:PNGEncoder = new PNGEncoder(); 
-			var bytes:ByteArray = encoder.encode(srcBmp); 
-			return bytes; 
-		}   
 	}
 }
