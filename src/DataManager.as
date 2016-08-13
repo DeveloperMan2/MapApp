@@ -189,14 +189,20 @@ package
 			var layerAlpha:int = 1;
 			if(this.imageBaseLayer != null && map.getLayer(imageBaseLayer.id) != null)
 			{
+				imageBaseLayer.visible = true;
 				layerAlpha = imageBaseLayer.alpha;
-				this.map.removeLayer(imageBaseLayer);
+				(this.imageBaseLayer as MBTilesLayerEx).mbtilesPath =layerUrl
+				this.map.refresh();
+				//this.map.removeLayer(imageBaseLayer);//此处删除再添加存在问题，离线地图无法再添加。
 			}
-			imageBaseLayer = new MBTilesLayerEx();
-			imageBaseLayer.alpha = layerAlpha;
-			imageBaseLayer.id = "imageBaseLayer";
-			imageBaseLayer.mbtilesPath = layerUrl;
-			this.map.addLayer(imageBaseLayer);
+			else
+			{
+				imageBaseLayer = new MBTilesLayerEx();
+				imageBaseLayer.alpha = layerAlpha;
+				imageBaseLayer.id = "imageBaseLayer";
+				imageBaseLayer.mbtilesPath = layerUrl;
+				this.map.addLayer(imageBaseLayer);
+			}
 			dm.resetMapPosition(imageBaseLayer.bounds);
 		}
 		

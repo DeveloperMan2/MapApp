@@ -225,7 +225,6 @@ pip-log.txt
 .project
 .flexProperties
 .actionScriptProperties
-
-
+*.apk
 bin-debug
 *.apk
