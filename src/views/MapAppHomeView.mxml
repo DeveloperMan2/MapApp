@@ -10,6 +10,7 @@
 			import com.component.popup.MapDirContainer;
 			import com.util.AppEvent;
 			import com.util.QueryUtil;
+			import com.util.SystemConfigUtil;
 			
 			import mx.collections.ArrayCollection;
 			import mx.core.FlexGlobals;
@@ -18,6 +19,7 @@
 			import mx.utils.StringUtil;
 			
 			import spark.components.SkinnablePopUpContainer;
+			import spark.events.IndexChangeEvent;
 			
 			private const QUERYSTATE:String = "QueryState";
 			private const BROWSESTATE:String = "BrowseState";
@@ -27,6 +29,8 @@
 			
 			/**定义关键字查询对象*/
 			private var queryUtil:QueryUtil;
+			
+			private var systemConfigUtil:SystemConfigUtil;
 			
 			protected function creationCompleteHandler(event:FlexEvent):void
 			{
@@ -99,11 +103,25 @@
 			{
 				var keyWord:String = dataKeyWord.text;
 				keyWord = StringUtil.trim(keyWord);
-				var resultList:Array = queryUtil.queryByName(keyWord);
+				var level:int = -1;
+				var cityCode:String = "";
+				var countryCode:String = "";
+				
+				if (mapLevelId != null && mapLevelId.selectedIndex > 0) {
+					level = mapLevelId.selectedItem.value;
+				}
+				
+				if (cityId != null && cityId.selectedIndex > 0) {
+					cityCode = cityId.selectedItem.NODE_ID;
+					if (countyId.selectedIndex > 0) {
+						countryCode = countyId.selectedItem.NODE_ID;
+					}
+				}
+				var resultList:Array = queryUtil.queryByName(keyWord, cityCode, countryCode, level);
 				mbLayerNameList.dataProvider = new ArrayCollection(resultList);
 				queryResultInfoLb.text = "共" + resultList.length +"记录";
 				//当不存在记录时，隐藏离线地图图层
-				if(resultList.length == 0)
+				if(resultList.length == 0 && dm.imageBaseLayer != null)
 				{
 					dm.imageBaseLayer.visible = false;
 					dm.map.refresh();
@@ -170,7 +188,9 @@
 			
 			protected function imageAlphaSlider_changeHandler(event:Event):void
 			{
-				dm.imageBaseLayer.alpha = imageAlphaSlider.value;
+				if (dm.imageBaseLayer != null) {
+					dm.imageBaseLayer.alpha = imageAlphaSlider.value;
+				}
 			}
 			
 			[Bindable]
@@ -194,6 +214,38 @@
 				{name:"第16级", value:16},
 				{name:"第17级", value:17}
 			]);
+			
+			protected function cityId_changeHandler(event:IndexChangeEvent):void
+			{
+				if (cityId.dataProvider != null && cityId.selectedIndex > 0 ) {
+					countyId.dataProvider = systemConfigUtil.queryCountryList(cityId.selectedItem.NODE_ID);
+					countyId.selectedIndex = 0;
+				} else {
+					countyId.dataProvider = null;
+				}
+				countyId_valueCommitHandler();
+			}
+			
+			protected function cityId_creationCompleteHandler(event:FlexEvent):void
+			{
+				//初始化行政区划查询数据
+				systemConfigUtil = dm.getSystemConfigUtil();
+				cityId.dataProvider = systemConfigUtil.queryCityList();
+				cityId.selectedIndex = 0;				
+			}
+			
+			protected function countyId_valueCommitHandler():void
+			{
+				if (cityId.dataProvider != null ) {
+					searchBtn_clickHandler();
+				}
+			}
+			
+			protected function mapLevelId_changeHandler(event:IndexChangeEvent):void
+			{
+				countyId_valueCommitHandler();
+			}
+			
 		]]>
 	</fx:Script>
 	<s:states>
@@ -205,7 +257,7 @@
 	</s:titleContent>
 	<s:navigationContent>	
 		<s:Button id="ShowQueryPanel" toolTip="显示查询面板" icon="{dm.iconAssembly.listIcon}" click="ShowQueryPanel_clickHandler(event)"
-				 includeIn="BrowseState" />
+				  includeIn="BrowseState" />
 		<s:Button id="HideQueryPanel" toolTip="隐藏查询面板" icon="{dm.iconAssembly.returnIcon}" click="HideQueryPanel_clickHandler(event)" 
 				  includeIn="QueryState"/>
 	</s:navigationContent>
@@ -244,8 +296,9 @@
 										 height="{48*dm.multiResolution}" width="{144*dm.multiResolution}"/>
 								<s:SpinnerListContainer width="100%" horizontalCenter="0" top="20" bottom="20">
 									<s:SpinnerList id="mapLevelId" height="100%" width="100%" 
-												   selectedIndex="0"
-												   typicalItem="999" dataProvider="{mapLevelCol}" labelField="name">
+												   selectedIndex="0" 
+												   typicalItem="999" dataProvider="{mapLevelCol}" labelField="name"
+												   change="mapLevelId_changeHandler(event)">
 									</s:SpinnerList>
 								</s:SpinnerListContainer>
 							</s:VGroup>
@@ -254,10 +307,13 @@
 										 height="{48*dm.multiResolution}" width="{256*dm.multiResolution}"/>
 								<s:SpinnerListContainer width="100%" horizontalCenter="0" top="20" bottom="20">
 									<s:SpinnerList id="cityId" height="100%" width="100%" typicalItem="999"
-												   selectedIndex="0">
+												   labelField="NODE_NAME"
+												   selectedIndex="0" change="cityId_changeHandler(event)" 
+												   creationComplete="cityId_creationCompleteHandler(event)">
 									</s:SpinnerList>
 									<s:SpinnerList id="countyId" height="100%" width="100%" typicalItem="999"
-												   selectedIndex="0">
+												   labelField="NODE_NAME"
+												   selectedIndex="0" valueCommit="countyId_valueCommitHandler()">
 									</s:SpinnerList>
 								</s:SpinnerListContainer>
 							</s:VGroup>
@@ -283,7 +339,7 @@
 			</s:HGroup>	
 			<s:List id="mbLayerNameList" width="100%" height="100%"
 					requireSelection="true" selectedIndex="0"
-					textAlign="left"  
+					textAlign="left"  contentBackgroundAlpha="0.8"
 					itemRenderer="com.renderer.LayerItemRenderer"
 					valueCommit="mbLayerNameList_changeHandler()">							
 			</s:List>

@@ -65,16 +65,28 @@ package com.util
 		}// end function
 		
 		/**根据名称查询*/
-		public function queryByName(keyName:String):Array
+		public function queryByName(keyName:String, cityCode:String, countryCode:String, level:int):Array
 		{
 			var stmtTemp:SQLStatement = new SQLStatement();
 			var result:SQLResult;
 			var data:Array;
 			
-			var sql:String = "SELECT *  FROM image WHERE name like  :name or location like :location";
+			var sql:String = "SELECT *  FROM image WHERE name like  :name"
+			if (cityCode != null && cityCode.length > 0 ) {
+				sql +=" and cityCode like :cityCode ";
+				stmtTemp.parameters[":cityCode"] = "%"+cityCode + "%";
+				if (countryCode != null && countryCode.length > 0 ) {
+					sql +=" and countryCode like :countryCode ";
+					stmtTemp.parameters[":countryCode"] = "%"+countryCode + "%";
+				}
+			} 
+			
+			if (level != -1) {
+				sql +=" and level = :level ";
+				stmtTemp.parameters[":level"] = level;
+			}
 			stmtTemp.text = sql;
 			stmtTemp.parameters[":name"] = "%"+keyName + "%";
-			stmtTemp.parameters[":location"] = "%"+keyName + "%";
 			stmtTemp.sqlConnection = this.dbConn;
 			try
 			{
@@ -94,7 +106,7 @@ package com.util
 			{
 				_status = "查询出错" + error.message;
 			}
-			return null;	
+			return new Array;	
 		}
 	}
 }

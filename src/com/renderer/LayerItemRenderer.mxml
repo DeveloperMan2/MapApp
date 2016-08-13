@@ -14,8 +14,6 @@
 				
 				//名称字段
 				this.lbl.text = data["name"];
-				
-				this.messageField.text = data["location"];
 			}			
 		]]>
 	</fx:Script>	
@@ -33,14 +31,9 @@
 		</s:fill>
 	</s:Rect>
 	<s:VGroup  width="100%" verticalAlign="middle" height="100%">
-		<s:HGroup verticalAlign="middle" width="100%"
-				  paddingLeft="0" paddingRight="0" height="100%">
+		<s:HGroup verticalAlign="middle" width="100%" height="100%"  paddingLeft="0" paddingRight="0" >
 			<s:Image id="img" source="{dm.iconAssembly.layerIcon}" height="100%" backgroundAlpha="0"/>
-			<s:VGroup  width="100%" height="100%" horizontalAlign="left">
-				<s:Label id="lbl" color="#0f0f0f" height="100%" backgroundAlpha="0"/>
-				<s:Label id="messageField" height="100%"  backgroundAlpha="0"
-						 right="{24*dm.multiResolution}" styleName="messageStyle" />
-			</s:VGroup>
+			<s:Label id="lbl" color="#0f0f0f"  height="100%" backgroundAlpha="0" verticalAlign="middle"/>
 		</s:HGroup>
 		<s:Rect height="2" width="100%" bottom="0">
 			<s:fill>

@@ -6,6 +6,9 @@ package com.util
 	import flash.data.SQLStatement;
 	import flash.errors.SQLError;
 	import flash.filesystem.File;
+	
+	import mx.collections.ArrayCollection;
+
 	public class SystemConfigUtil extends Object
 	{
 		private var dbConn:SQLConnection;
@@ -124,6 +127,59 @@ package com.util
 				return false;
 			}
 			return false;	
+		}
+		
+	  /**查询所有市数据*/
+		public function queryCityList():ArrayCollection
+		{
+			var stmtTemp:SQLStatement = new SQLStatement();
+			var result:SQLResult;
+			var data:Array;
+			
+			var sql:String = "select * from area where PARENT_NODE_ID = '360000'";
+			stmtTemp.text = sql;
+			stmtTemp.sqlConnection = this.dbConn;
+			try
+			{
+				stmtTemp.execute();
+				result = stmtTemp.getResult();
+				data = result.data;
+				var allItem:Object = {NODE_ID:"360000",NODE_NAME:"----"};
+				data.unshift(allItem);
+				return new ArrayCollection(data);
+			}
+			catch (error:SQLError)
+			{
+				_status = "查询出错" + error.message;
+			}
+			return null;	
+		}
+		
+		/**根据选择的市，查询市下一级县数据*/
+		public function queryCountryList(cityCode:String):ArrayCollection
+		{
+			var stmtTemp:SQLStatement = new SQLStatement();
+			var result:SQLResult;
+			var data:Array;
+			
+			var sql:String = "select * from area where PARENT_NODE_ID like :parent_node_id";
+			stmtTemp.text = sql;
+			stmtTemp.parameters[":parent_node_id"] =  "%"+cityCode+"%";
+			stmtTemp.sqlConnection = this.dbConn;
+			try
+			{
+				stmtTemp.execute();
+				result = stmtTemp.getResult();
+				data = result.data;
+				var allItem:Object = {NODE_ID:cityCode,NODE_NAME:"----"};
+				data.unshift(allItem);
+				return new ArrayCollection(data);
+			}
+			catch (error:SQLError)
+			{
+				_status = "查询出错" + error.message;
+			}
+			return null;	
 		}
 	}
 }

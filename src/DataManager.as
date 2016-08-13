@@ -131,6 +131,9 @@ package
 		/**系统配置数据查询对象*/
 		private var _systemConfigUtil:SystemConfigUtil;
 		
+		/**系统查询对象*/
+		private var _queryUtil:QueryUtil;
+		
 		public var mapViewBounds:Rectangle2D;
 		
 		/**
@@ -420,15 +423,25 @@ package
 			}
 		}
 		
-		private function get systemConfigUtil():SystemConfigUtil
+		public function getSystemConfigUtil():SystemConfigUtil
 		{
 			//如果system.db没有配置路径，获取系统目录,复制查询的image.db
 			if (_systemConfigUtil == null) {
 				var destinaPath:String = MainVO.SystemConfigPath + MainVO.SystemDBFileName;
 				var destinaSystemDbFile:File = RootDirectory.root.resolvePath(destinaPath);
+				var originSystemDbFile:File;
 				if (destinaSystemDbFile.exists == false) {
-					var originSystemDbFile:File = File.applicationDirectory.resolvePath(MainVO.OriginDBPath+MainVO.SystemDBFileName);
+					originSystemDbFile = File.applicationDirectory.resolvePath(MainVO.OriginDBPath+MainVO.SystemDBFileName);
 					destinaSystemDbFile.parent.createDirectory();
+					originSystemDbFile.copyTo(destinaSystemDbFile,true);
+				}
+				
+				_systemConfigUtil = new SystemConfigUtil(destinaSystemDbFile.nativePath);
+				_systemConfigUtil.open();
+				//针对新建的area表，如果系统运行的库里没有，删除库重新复制到系统里
+				if (_systemConfigUtil.queryCityList() == null) {
+					_systemConfigUtil.close();
+					originSystemDbFile = File.applicationDirectory.resolvePath(MainVO.OriginDBPath+MainVO.SystemDBFileName);
 					originSystemDbFile.copyTo(destinaSystemDbFile,true);
 				}
 				
@@ -441,7 +454,7 @@ package
 		//获取系统影像文件mbtiles文件路径，通过system.db查询
 		public function getSystemConfigMbtilesPath():String
 		{
-			var mbtilesPath:String = systemConfigUtil.queryMbtilesFolderPath();
+			var mbtilesPath:String = getSystemConfigUtil().queryMbtilesFolderPath();
 			if (mbtilesPath == File.separator || mbtilesPath.length <= 1) {
 				mbtilesPath = RootDirectory.root.resolvePath(MainVO.MbMapsRootPath).nativePath;
 				setSystemConfigMbtilesPath(mbtilesPath);
@@ -454,7 +467,7 @@ package
 		//更新系统影像文件mbtiles文件路径，通过system.db查询
 		public function setSystemConfigMbtilesPath(selectMbtilesPath:String):Boolean
 		{
-			var success:Boolean = systemConfigUtil.updateMbtilesFolderPath(selectMbtilesPath);
+			var success:Boolean = getSystemConfigUtil().updateMbtilesFolderPath(selectMbtilesPath);
 			return success;
 		}
 		
@@ -462,7 +475,7 @@ package
 		public function getQueryUtil():QueryUtil
 		{
 			//复制查询使用的数据库 , 判断文件是否存在，不存在进行复制操作
-			try{
+			if (_queryUtil == null) {
 				//路径是绝对路径
 				var destinaPath:String = getSystemConfigMbtilesPath() + MainVO.QueryDBFileName;
 				var destinaQueryDbFile:File = File.documentsDirectory.resolvePath(destinaPath);
@@ -471,11 +484,10 @@ package
 					destinaQueryDbFile.parent.createDirectory();
 					originQueryDbFile.copyTo(destinaQueryDbFile,true);
 				}
-			} catch(e:Error) {
+				_queryUtil = new QueryUtil(destinaQueryDbFile.nativePath);
+				_queryUtil.open();
 			}
-			var queryUtil:QueryUtil = new QueryUtil(destinaQueryDbFile.nativePath);
-			queryUtil.open();
-			return queryUtil;
+			return _queryUtil;
 		}
 	}
 }
