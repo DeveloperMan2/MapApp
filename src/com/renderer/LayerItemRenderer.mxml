@@ -5,14 +5,8 @@
 				height="{64*dm.multiResolution}" width="100%">	
 	<fx:Script>
 		<![CDATA[
-			
-			
 			[Bindable]
 			private var dm:DataManager = DataManager.getInstance();
-			private function myIconFunction(item:Object):Object
-			{
-				return dm.iconAssembly.layerIcon;
-			}
 			
 			override public function set data(value:Object):void
 			{
@@ -41,7 +35,7 @@
 	<s:VGroup  width="100%" verticalAlign="middle" height="100%">
 		<s:HGroup verticalAlign="middle" width="100%"
 				  paddingLeft="0" paddingRight="0" height="100%">
-			<s:Image id="img" source="{dm.iconAssembly.pointIcon}" height="100%" backgroundAlpha="0"/>
+			<s:Image id="img" source="{dm.iconAssembly.layerIcon}" height="100%" backgroundAlpha="0"/>
 			<s:VGroup  width="100%" height="100%" horizontalAlign="left">
 				<s:Label id="lbl" color="#0f0f0f" height="100%" backgroundAlpha="0"/>
 				<s:Label id="messageField" height="100%"  backgroundAlpha="0"
