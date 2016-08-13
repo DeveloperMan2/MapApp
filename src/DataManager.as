@@ -4,7 +4,6 @@ package
 	import com.mapping.MBTilesLayerEx;
 	import com.mapping.TiledTDTLayer;
 	import com.supermap.web.core.Rectangle2D;
-	import com.supermap.web.mapping.MBTilesLayer;
 	import com.supermap.web.mapping.Map;
 	import com.supermap.web.mapping.OfflineStorage;
 	import com.supermap.web.mapping.TiledCachedLayer;
@@ -55,7 +54,10 @@ package
 			{
 				throw new Error("不能通过该方式创建类型的实例，请采用静态方法getInstance()初始化对象！");
 			}
-		}	
+		}
+		
+		/**APP标题*/
+		public var systemTitle:String="地图浏览";
 		
 		/**系统默认的离线影像数据目录*/
 		//	public var defaultMbTilesDir:File = null;
@@ -183,18 +185,24 @@ package
 			if (!mbtilesFolder.exists || mbtilesFolder.isDirectory) {
 				return
 			}
-			
+			this.systemTitle = bVo["name"];//设置应用标题
 			var layerAlpha:int = 1;
 			if(this.imageBaseLayer != null && map.getLayer(imageBaseLayer.id) != null)
 			{
+				imageBaseLayer.visible = true;
 				layerAlpha = imageBaseLayer.alpha;
-				this.map.removeLayer(imageBaseLayer);
+				(this.imageBaseLayer as MBTilesLayerEx).mbtilesPath =layerUrl
+				this.map.refresh();
+				//this.map.removeLayer(imageBaseLayer);//此处删除再添加存在问题，离线地图无法再添加。
 			}
-			imageBaseLayer = new MBTilesLayerEx();
-			imageBaseLayer.alpha = layerAlpha;
-			imageBaseLayer.id = "imageBaseLayer";
-			imageBaseLayer.mbtilesPath = layerUrl;
-			this.map.addLayer(imageBaseLayer);
+			else
+			{
+				imageBaseLayer = new MBTilesLayerEx();
+				imageBaseLayer.alpha = layerAlpha;
+				imageBaseLayer.id = "imageBaseLayer";
+				imageBaseLayer.mbtilesPath = layerUrl;
+				this.map.addLayer(imageBaseLayer);
+			}
 			dm.resetMapPosition(imageBaseLayer.bounds);
 		}
 		

@@ -222,19 +222,19 @@
 				<s:SolidColor color="#000000"/>
 			</s:fill>
 		</s:Rect>
-		<s:HGroup width="100%" height="{48*dm.multiResolution}" 
+		<s:HGroup width="100%" height="{48*dm.multiResolution}" gap="0"
 				   verticalAlign="middle" includeIn="SubState" itemCreationPolicy="immediate">
 			<s:Label id="toolTipLb" height="100%" visible="false" includeInLayout="{toolTipLb.visible}"/>
 			<s:Spacer width="100%"/>
-			<s:Button id="resetBtn" label="返回根目录"  
-					  icon="{dm.iconAssembly.resetIcon}" 
+			<s:Button id="resetBtn" label="根目录"  
+					  icon="{dm.iconAssembly.homeIcon}" 
 					  iconPlacement="left" 
-					  width="{192*dm.multiResolution}" height="100%"
+					  width="{132*dm.multiResolution}" height="100%"
 					  click="resetBtn_clickHandler(event)"/>
-			<s:Button id="returnLastDir" label="返回上一级" 
-					  icon="{dm.iconAssembly.backIcon}" 
+			<s:Button id="returnLastDir" label="上一级" 
+					  icon="{dm.iconAssembly.backdisIcon}" 
 					  iconPlacement="left" 
-					  width="{192*dm.multiResolution}" height="100%"
+					  width="{132*dm.multiResolution}" height="100%"
 					  click="returnLastDir_clickHandler(event)"/>
 		</s:HGroup>
 		<s:Scroller id="dirScroller" height="100%" excludeFrom="LoadState"
