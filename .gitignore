@@ -226,4 +226,7 @@ pip-log.txt
 .flexProperties
 .actionScriptProperties
 *.apk
+
 bin-debug
+bin-debug/assets/common/css/main.css
+bin-debug/assets/common/css/main.css

@@ -31,8 +31,8 @@
 <s:SparkButtonSkin xmlns:fx="http://ns.adobe.com/mxml/2009" 
              xmlns:s="library://ns.adobe.com/flex/spark" 
              xmlns:fb="http://ns.adobe.com/flashbuilder/2009"
-			 width="{64 * getStyle('multiResolution')}"
-			 height="{64 * getStyle('multiResolution')}"
+			 width="{172*dm.multiResolution}"
+			 height="{48*dm.multiResolution}"
              alpha.disabled="0.5">
      
     <fx:Metadata>
@@ -43,6 +43,13 @@
         [HostComponent("spark.components.Button")]
         ]]>
     </fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			[Bindable]
+			private var dm:DataManager = DataManager.getInstance();
+		]]>
+	</fx:Script>
     
     <!-- states -->
     <s:states>
@@ -66,9 +73,10 @@
     <!--- @copy spark.components.supportClasses.ButtonBase#labelDisplay  -->
     <s:Label id="labelDisplay"
              textAlign="center"
-             maxDisplayedLines="1" color="0x000000"
+             maxDisplayedLines="1" color="#0000FF"
+			 fontWeight="normal" backgroundAlpha="0"
              horizontalCenter="0" verticalCenter="1" verticalAlign="middle"
-             left="10" right="10" top="2" bottom="2">
+             left="0" right="0" top="0" bottom="0">
     </s:Label>
     
 </s:SparkButtonSkin>
