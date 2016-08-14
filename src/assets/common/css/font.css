@@ -2,8 +2,8 @@
 @namespace s "library://ns.adobe.com/flex/spark";
 
 @font-face {
-	src:url("mysy.ttf");
-	fontFamily: 微软雅黑;
+	src:url("../font/msyh.ttf");
+	fontFamily: msyh;
 	fontStyle: normal;
 	fontWeight: normal;
 	advancedAntiAliasing: true;

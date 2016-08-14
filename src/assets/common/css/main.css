@@ -5,9 +5,19 @@
 @namespace mx "library://ns.adobe.com/flex/mx";
 @namespace ns1 "http://flex.apache.org/experimental/ns";
 
+
+@font-face {
+	src:url("../font/msyh.ttf");
+	fontFamily: "msyh";
+	fontStyle: normal;
+	fontWeight: normal;
+	advancedAntiAliasing: true;
+	embed-as-cff:true;
+}
+
 global
 {
-	
+	fontFamily:"msyh";
 	content-background-alpha: 0;
 	backgroundColor:#FFFFFF;
 }
@@ -58,14 +68,13 @@ s|List
 	color: #686A70;
 }
 
-/* StyleableTextField, regular */
+/**
 @font-face {
 	src: url("assets/common/fonts/Roboto-Regular.ttf");
 	fontFamily: "comic";
 	embedAsCFF: false;
 }
 
-/* StyleableTextField, bold */
 @font-face {
 	src: url("assets/common/fonts/Roboto-Bold.ttf");
 	fontFamily: "comic";
@@ -73,22 +82,20 @@ s|List
 	embedAsCFF: false;
 }
 
-/* Label, regular */
 @font-face {
 	src: url("assets/common/fonts/Roboto-Regular.ttf");
 	fontFamily: "comicCFF";
 	embedAsCFF: true;
 }
 
-/* Label, bold */
 @font-face {
 	src: url("assets/common/fonts/Roboto-Bold.ttf");
 	fontFamily: "comicCFF";
 	fontWeight: bold;
 	embedAsCFF: true;
-}
+}**/
 
-s|Label
+/*s|Label
 {
 	fontFamily: "comicCFF";
 }
@@ -101,5 +108,5 @@ s|ActionBar
 s|LabelItemRenderer
 {
 	fontFamily: "comic";
-}
+}*/
 
