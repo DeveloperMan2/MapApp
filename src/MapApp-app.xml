@@ -172,11 +172,18 @@
 		</icon> -->
 		
 	<icon>
+		<image40x40>assets/common/image/logo_40.png</image40x40>
 		<image48x48>assets/common/image/logo_48.png</image48x48>
-		<image66x66>assets/common/image/logo_66.png</image66x66>
+		<image50x50>assets/common/image/logo_50.png</image50x50>
+		<image57x57>assets/common/image/logo_57.png</image57x57>
+		<image60x60>assets/common/image/logo_60.png</image60x60>
 		<image72x72>assets/common/image/logo_72.png</image72x72>
+		<image76x76>assets/common/image/logo_76.png</image76x76>
 		<image96x96>assets/common/image/logo_96.png</image96x96>
+		<image114x114>assets/common/image/logo_114.png</image114x114>
+		<image120x120>assets/common/image/logo_120.png</image120x120>
 		<image128x128>assets/common/image/logo_128.png</image128x128>
+		<image152x152>assets/common/image/logo_152.png</image152x152>
 	</icon>
 
 	<!-- Whether the application handles the update when a user double-clicks 

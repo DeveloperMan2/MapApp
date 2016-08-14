@@ -195,7 +195,7 @@
 			
 			[Bindable]
 			private var mapLevelCol:ArrayCollection = new ArrayCollection([
-				{name:"所有级别", value:-1},
+				{name:"----", value:-1},
 				{name:"第1级", value:1},
 				{name:"第2级", value:2},
 				{name:"第3级", value:3},
