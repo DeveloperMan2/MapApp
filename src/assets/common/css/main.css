@@ -9,6 +9,7 @@ global
 {
 	content-background-alpha: 0;
 	backgroundColor:#FFFFFF;
+	fontFamily:"宋体"
 }
 
 ns|Map
@@ -101,4 +102,3 @@ s|LabelItemRenderer
 {
 	fontFamily: "comic";
 }
-

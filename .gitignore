@@ -228,5 +228,5 @@ pip-log.txt
 *.apk
 
 bin-debug
-bin-debug/assets/common/css/main.css
-bin-debug/assets/common/css/main.css
+bin-release
+bin-release-temp
