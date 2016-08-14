@@ -186,6 +186,10 @@ package
 			var layerUrl:String = getSystemConfigMbtilesPath() +bVo.path;
 			var mbtilesFolder:File = File.applicationDirectory.resolvePath(layerUrl);
 			if (!mbtilesFolder.exists || mbtilesFolder.isDirectory) {
+				if (dm.imageBaseLayer != null && map.getLayer(dm.imageBaseLayer.id) != null) {
+					map.removeLayer(dm.imageBaseLayer);
+					dm.imageBaseLayer = null;
+				}
 				return
 			}
 			this.systemTitle = bVo["name"];//设置应用标题
@@ -194,7 +198,8 @@ package
 			{
 				imageBaseLayer.visible = true;
 				layerAlpha = imageBaseLayer.alpha;
-				(this.imageBaseLayer as MBTilesLayerEx).mbtilesPath =layerUrl
+				imageBaseLayer.mbtilesPath =layerUrl;
+				map.moveLayer(imageBaseLayer.id,map.layerIds.length-1);
 				this.map.refresh();
 				//this.map.removeLayer(imageBaseLayer);//此处删除再添加存在问题，离线地图无法再添加。
 			}
@@ -204,6 +209,7 @@ package
 				imageBaseLayer.alpha = layerAlpha;
 				imageBaseLayer.id = "imageBaseLayer";
 				imageBaseLayer.mbtilesPath = layerUrl;
+				this.initMap(map);
 				this.map.addLayer(imageBaseLayer);
 			}
 			dm.resetMapPosition(imageBaseLayer.bounds);
@@ -472,10 +478,10 @@ package
 		}
 		
 		/**初始化，关键字查询对象*/
-		public function getQueryUtil():QueryUtil
+		public function getQueryUtil(reload:Boolean = false):QueryUtil
 		{
 			//复制查询使用的数据库 , 判断文件是否存在，不存在进行复制操作
-			if (_queryUtil == null) {
+			if (_queryUtil == null || reload == true) {
 				//路径是绝对路径
 				var destinaPath:String = getSystemConfigMbtilesPath() + MainVO.QueryDBFileName;
 				var destinaQueryDbFile:File = File.documentsDirectory.resolvePath(destinaPath);

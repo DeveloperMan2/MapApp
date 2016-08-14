@@ -2,18 +2,12 @@ package  com.mapping
 {
 	import com.supermap.web.sm_internal;
 	import com.supermap.web.core.Point2D;
-	import com.supermap.web.core.Rectangle2D;
 	import com.supermap.web.mapping.ImageFormat;
 	import com.supermap.web.mapping.TiledCachedLayer;
 	import com.supermap.web.mapping.supportClasses.MetadataObj;
 	import com.util.Coordinate;
 	
-	import flash.display.BitmapData;
 	import flash.utils.ByteArray;
-	
-	import mx.graphics.codec.PNGEncoder;
-	
-	import spark.components.Image;
 	
 	use namespace sm_internal;
 	

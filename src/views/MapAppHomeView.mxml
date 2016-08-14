@@ -51,16 +51,23 @@
 			{
 				setMapDir_clickHandler();
 				//初始化查询对象
-				queryUtil = dm.getQueryUtil();
+				queryUtil = dm.getQueryUtil(true);
 				
 				//初始化获取列表
 				searchBtn_clickHandler();
+				
+				mbLayerNameList_changeHandler();
 			}
 			
 			protected function mbLayerNameList_changeHandler():void
 			{
 				if (mbLayerNameList.selectedItem != null){
 					dm.addMbLayer(mbLayerNameList.selectedItem);
+				} else {
+				    if (dm.imageBaseLayer && map && map.getLayer(dm.imageBaseLayer.id) != null) {
+						map.removeLayer(dm.imageBaseLayer);
+						dm.imageBaseLayer = null;
+					}
 				}
 			}
 			
@@ -125,6 +132,8 @@
 				{
 					dm.imageBaseLayer.visible = false;
 					dm.map.refresh();
+				} else {
+					mbLayerNameList.selectedIndex = 0;
 				}
 			}
 			

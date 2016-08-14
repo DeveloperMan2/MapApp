@@ -12,6 +12,7 @@
 			import flash.utils.setTimeout;
 			
 			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
 			import mx.events.ResizeEvent;
 			
 			private const ROOTSTATE:String = "RootState";
@@ -101,12 +102,6 @@
 				{
 					var systemConfigFile:File = File.documentsDirectory.resolvePath(systemConfigPath)
 					this.getDirInfo(systemConfigFile);
-				}
-				else
-				{
-					var file:File = new File();  
-					file.browseForDirectory("浏览设备目录");   
-					file.addEventListener(Event.SELECT, dirSelectpd); 
 				}
 			}
 			
@@ -219,12 +214,16 @@
 			//在PC端显示时，再次点击弹出系统文件选择框 
 			protected function currentDirPath_clickHandler(event:MouseEvent):void
 			{
-				// TODO Auto-generated method stub
+				var file:File = new File();  
+				file.browseForDirectory("浏览设备目录");   
+				file.addEventListener(Event.SELECT, dirSelectpd); 
+			}
+			
+			protected function currentDirPath_creationCompleteHandler(event:FlexEvent):void
+			{
 				if(Capabilities.os.indexOf("Linux") == -1)
 				{
-					var file:File = new File();  
-					file.browseForDirectory("浏览设备目录");   
-					file.addEventListener(Event.SELECT, dirSelectpd); 
+					currentDirPath.addEventListener(MouseEvent.CLICK, currentDirPath_clickHandler);
 				}
 			}
 			
@@ -241,7 +240,7 @@
 			<s:Label text="当前目录：" height="100%" verticalAlign="middle"/>
 			<s:Label id="currentDirPath" text="请选择离线地图存放目录" 
 					 verticalAlign="middle" 
-					 width="100%" height="100%" click="currentDirPath_clickHandler(event)"/>
+					 width="100%" height="100%" creationComplete="currentDirPath_creationCompleteHandler(event)"/>
 			<s:Button id="confirmBtn" label="确定目录" width="{124*dm.multiResolution}" height="100%"
 					  click="confirmBtn_clickHandler(event)"/>
 		</s:HGroup>
