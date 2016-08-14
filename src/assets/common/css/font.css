@@ -2,7 +2,7 @@
 @namespace s "library://ns.adobe.com/flex/spark";
 
 @font-face {
-	src:url("../font/msyh.ttf");
+	src:url("../font/yh.ttf");
 	fontFamily: msyh;
 	fontStyle: normal;
 	fontWeight: normal;
