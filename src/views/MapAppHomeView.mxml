@@ -119,7 +119,7 @@
 				}
 				var resultList:Array = queryUtil.queryByName(keyWord, cityCode, countryCode, level);
 				mbLayerNameList.dataProvider = new ArrayCollection(resultList);
-				queryResultInfoLb.text = "共" + resultList.length +"记录";
+				queryResultInfoLb.text = "共" + resultList.length +"条记录";
 				//当不存在记录时，隐藏离线地图图层
 				if(resultList.length == 0 && dm.imageBaseLayer != null)
 				{
