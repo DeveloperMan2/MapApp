@@ -10,12 +10,14 @@
 	<fx:Script>
 		<![CDATA[
 			import mx.events.FlexEvent;
+			import mx.events.StyleEvent;
 			
 			[Bindable]
 			private var dm:DataManager = DataManager.getInstance();
 			
 			protected function initMapAppHandler(event:FlexEvent):void
 			{
+				InitFontStyle();
 				//初始化系统运行参数
 				dm.initAppParam(this.runtimeDPI);
 				
@@ -25,6 +27,22 @@
 				//初始化系统目录
 				var initDirectory:SystemInit = new SystemInit();
 				initDirectory.initSystemDirectory(true);
+			}
+			
+			private function InitFontStyle():void
+			{
+				
+			//	var topLevelStyleManager:IStyleManager2 = StyleManager.getStyleManager(null);
+			//	var styleEventDispatcher:IEventDispatcher = topLevelStyleManager.loadStyleDeclarations2("assets/common/css/font.swf",true, ApplicationDomain.currentDomain);//加载字体swf
+			//	styleEventDispatcher.addEventListener(StyleEvent.COMPLETE,callBackHandler);
+			}
+			
+			private function callBackHandler(event:StyleEvent = null):void
+			{
+//				var topLevelStyleManager:IStyleManager2 = StyleManager.getStyleManager(null);
+//				var cssStyleDeclarationGlobal:CSSStyleDeclaration = topLevelStyleManager.getStyleDeclaration("global")
+//				var nameF:String = cssStyleDeclarationGlobal.getStyle("fontFamily");
+//				cssStyleDeclarationGlobal.setStyle("fontFamily", "msyh");
 			}
 			
 		]]>

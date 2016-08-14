@@ -51,16 +51,23 @@
 			{
 				setMapDir_clickHandler();
 				//初始化查询对象
-				queryUtil = dm.getQueryUtil();
+				queryUtil = dm.getQueryUtil(true);
 				
 				//初始化获取列表
 				searchBtn_clickHandler();
+				
+				mbLayerNameList_changeHandler();
 			}
 			
 			protected function mbLayerNameList_changeHandler():void
 			{
 				if (mbLayerNameList.selectedItem != null){
 					dm.addMbLayer(mbLayerNameList.selectedItem);
+				} else {
+				    if (dm.imageBaseLayer && map && map.getLayer(dm.imageBaseLayer.id) != null) {
+						map.removeLayer(dm.imageBaseLayer);
+						dm.imageBaseLayer = null;
+					}
 				}
 			}
 			
@@ -125,6 +132,8 @@
 				{
 					dm.imageBaseLayer.visible = false;
 					dm.map.refresh();
+				} else {
+					mbLayerNameList.selectedIndex = 0;
 				}
 			}
 			
@@ -181,10 +190,10 @@
 				}
 			}
 			
-			/*protected function ImageAlpha_clickHandler(event:MouseEvent):void
+			protected function ImageAlpha_clickHandler(event:MouseEvent):void
 			{
 			imageAlphaSlider.visible = !imageAlphaSlider.visible;
-			}*/
+			}
 			
 			protected function imageAlphaSlider_changeHandler(event:Event):void
 			{
@@ -277,7 +286,7 @@
 				  paddingTop="{5*dm.multiResolution}" paddingRight="{5*dm.multiResolution}"
 				  horizontalAlign="right" verticalAlign="top">
 			<s:HGroup width="100%" gap="{5*dm.multiResolution}" horizontalAlign="left" verticalAlign="middle">
-				<s:Label text="关键字：" height="100%" verticalAlign="middle" backgroundAlpha="0" fontWeight="normal"/>
+				<s:Label text="关键字：" height="100%" verticalAlign="middle" backgroundAlpha="0" />
 				<s:TextInput id="dataKeyWord" prompt="输入查询关键字" width="100%" contentBackgroundAlpha="0"/>
 			</s:HGroup>
 			<s:HGroup width="100%" gap="{5*dm.multiResolution}" horizontalAlign="left" verticalAlign="middle">
@@ -351,16 +360,17 @@
 				  icon="{dm.iconAssembly.zoomInIcon}" styleName="OperationButton" click="zoomInBtn_clickHandler(event)"/>
 		<s:Button id="zoomOutBtn" 
 				  icon="{dm.iconAssembly.zoomOutIcon}" styleName="OperationButton" click="zoomOutBtn_clickHandler(event)"/>
-		<!--<s:VGroup horizontalAlign="right">
+		<s:VGroup horizontalAlign="right">
 		<s:Button id="ImageAlpha" 
 		icon="{dm.iconAssembly.userIcon}" styleName="OperationButton" click="ImageAlpha_clickHandler(event)"/>
 		<s:HSlider id="imageAlphaSlider" visible="false" includeInLayout="{imageAlphaSlider.visible}" 
 		minimum="0" maximum="1"  value="1"  stepSize="0.1" width="{200*dm.multiResolution}"  
+		height="{48*dm.multiResolution}"
 		change="imageAlphaSlider_changeHandler(event)"/>
-		</s:VGroup>-->
+		</s:VGroup>
 	</s:VGroup>
-	<s:HSlider id="imageAlphaSlider" bottom="12" right="12"
+	<!--<s:HSlider id="imageAlphaSlider" bottom="12" right="12"
 			   minimum="0" maximum="1"  value="1"  stepSize="0.1" 
 			   width="{200*dm.multiResolution}"  height="{48*dm.multiResolution}"
-			   change="imageAlphaSlider_changeHandler(event)"/>
+			   change="imageAlphaSlider_changeHandler(event)"/>-->
 </s:View>
