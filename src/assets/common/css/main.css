@@ -58,4 +58,48 @@ s|List
 	color: #686A70;
 }
 
+/* StyleableTextField, regular */
+@font-face {
+	src: url("assets/common/fonts/Roboto-Regular.ttf");
+	fontFamily: "comic";
+	embedAsCFF: false;
+}
+
+/* StyleableTextField, bold */
+@font-face {
+	src: url("assets/common/fonts/Roboto-Bold.ttf");
+	fontFamily: "comic";
+	fontWeight: bold;
+	embedAsCFF: false;
+}
+
+/* Label, regular */
+@font-face {
+	src: url("assets/common/fonts/Roboto-Regular.ttf");
+	fontFamily: "comicCFF";
+	embedAsCFF: true;
+}
+
+/* Label, bold */
+@font-face {
+	src: url("assets/common/fonts/Roboto-Bold.ttf");
+	fontFamily: "comicCFF";
+	fontWeight: bold;
+	embedAsCFF: true;
+}
+
+s|Label
+{
+	fontFamily: "comicCFF";
+}
+
+s|ActionBar
+{
+	fontFamily: "comic";
+}
+
+s|LabelItemRenderer
+{
+	fontFamily: "comic";
+}
 
