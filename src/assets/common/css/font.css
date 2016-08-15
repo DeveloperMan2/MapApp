@@ -1,0 +1,16 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+
+@font-face {
+	src:url("../font/yh.ttf");
+	fontFamily: msyh;
+	fontStyle: normal;
+	fontWeight: normal;
+	advancedAntiAliasing: true;
+	unicodeRange:
+		U+65B9,U+6B63,U+9ED1,U+4F53,U+7B80,U+000A,U+003C,U+0046,U+004F,U+004E,U+0054,U+0020,U+004B,U+0045,
+		U+0052,U+0049,U+0047,U+003D,U+0022,U+0031,U+003E,U+002F,U+8BF7,U+53CC,U+51FB,U+8FD9,U+91CC,U+7F16,U+8F91,
+		U+6587,U+672C,U+002E,U+0050,U+0032,U+0033,U+0034,U+0035,U+0036,U+0037,U+0038,U+0039,U+0030,U+5E72,U+9898,
+		U+000D,U+786E,U+9009,U+9879,U+9519,U+8BEF,U+5355,U+0074,U+0072,U+0075,U+0065,U+0066,U+0061,U+006C,U+0073,
+		U+0078,U+65C1,U+767D;
+}

@@ -56,7 +56,7 @@
       <actionScriptSettings version="1"/>
     </buildTarget>
     <buildTarget buildTargetName="default" isCurrent="false" platformId="default">
-      <airSettings airCertificatePath="E:/项目/27李康康/image/credentials.p12" airTimestamp="true" anePathSet="true" version="1">
+      <airSettings airCertificatePath="D:/Project/屌丝三宝/移动端开发/安卓授权/Android.p12" airTimestamp="true" anePathSet="true" version="1">
         <airExcludes/>
         <anePaths/>
         <newLaunchParams/>

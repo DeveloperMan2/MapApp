@@ -7,8 +7,8 @@
 
 
 @font-face {
-	src:url("../font/msyh.ttf");
-	fontFamily: "msyh";
+	src:url("../font/yh.ttf");
+	fontFamily: "嵌入字体";
 	fontStyle: normal;
 	fontWeight: normal;
 	advancedAntiAliasing: true;
@@ -17,7 +17,7 @@
 
 global
 {
-	fontFamily:"msyh";
+	fontFamily:"嵌入字体";
 	content-background-alpha: 0;
 	backgroundColor:#FFFFFF;
 }
@@ -67,46 +67,4 @@ s|List
 {
 	color: #686A70;
 }
-
-/**
-@font-face {
-	src: url("assets/common/fonts/Roboto-Regular.ttf");
-	fontFamily: "comic";
-	embedAsCFF: false;
-}
-
-@font-face {
-	src: url("assets/common/fonts/Roboto-Bold.ttf");
-	fontFamily: "comic";
-	fontWeight: bold;
-	embedAsCFF: false;
-}
-
-@font-face {
-	src: url("assets/common/fonts/Roboto-Regular.ttf");
-	fontFamily: "comicCFF";
-	embedAsCFF: true;
-}
-
-@font-face {
-	src: url("assets/common/fonts/Roboto-Bold.ttf");
-	fontFamily: "comicCFF";
-	fontWeight: bold;
-	embedAsCFF: true;
-}**/
-
-/*s|Label
-{
-	fontFamily: "comicCFF";
-}
-
-s|ActionBar
-{
-	fontFamily: "comic";
-}
-
-s|LabelItemRenderer
-{
-	fontFamily: "comic";
-}*/
 
