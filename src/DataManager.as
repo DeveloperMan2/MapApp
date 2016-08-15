@@ -4,6 +4,8 @@ package
 	import com.mapping.MBTilesLayerEx;
 	import com.mapping.TiledTDTLayer;
 	import com.supermap.web.core.Rectangle2D;
+	import com.supermap.web.core.styles.TextStyle;
+	import com.supermap.web.mapping.FeaturesLayer;
 	import com.supermap.web.mapping.Map;
 	import com.supermap.web.mapping.OfflineStorage;
 	import com.supermap.web.mapping.TiledCachedLayer;
@@ -17,6 +19,7 @@ package
 	
 	import flash.events.FileListEvent;
 	import flash.filesystem.File;
+	import flash.text.TextFormat;
 	
 	import mx.collections.ArrayCollection;
 	import mx.core.IVisualElement;
@@ -121,6 +124,9 @@ package
 		public var imageBaseLayer:MBTilesLayerEx=null;
 		/**矢量底图*/
 		public var vectorBaseLayer:TiledCachedLayer = null;
+		
+		public static const  markLayerId:String = "markLayer";
+		public var markLayer:FeaturesLayer = null;
 		/**矢量底图标注*/
 		public var vectorLabelBaseLayer:TiledCachedLayer = null;
 		
@@ -150,7 +156,22 @@ package
 			appIconScale = multiResolution/mapUIScale;
 			appIconSize = appIconSize*appIconScale;
 			appFontSize = appFontSize*appIconScale;
-			
+		}
+		
+		/**
+		 * 初始化注记图层
+		 */
+		public function initMarkLayer():void
+		{
+			if (markLayer == null || map.getLayer(markLayerId) == null) {
+				markLayer = new FeaturesLayer();
+				markLayer.id = markLayerId;
+				var textStyle:TextStyle = new TextStyle();
+				textStyle.textFormat = new TextFormat("msyh",13);
+				markLayer.style = textStyle;
+				map.addLayer(markLayer);
+			}
+			map.moveLayer(markLayerId,map.layerIds.length -1);
 		}
 		
 		/**
