@@ -103,6 +103,11 @@
 					var systemConfigFile:File = File.documentsDirectory.resolvePath(systemConfigPath)
 					this.getDirInfo(systemConfigFile);
 				}
+				
+				var fs:Array = File.getRootDirectories();
+				trace(fs.length);
+				var subfs:Array = (fs[0] as File).getDirectoryListing();
+				trace(subfs.length);
 			}
 			
 			//选择目录

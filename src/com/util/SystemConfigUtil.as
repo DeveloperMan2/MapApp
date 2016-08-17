@@ -18,6 +18,7 @@ package com.util
 		public static var _bytefromIsAS:Boolean = false;
 		
 		public const mbtilesPath:String ="mbtilesPath";
+		public const defaultParam:String ="defaultParam";
 		
 		public function SystemConfigUtil(filePath:String)
 		{
@@ -79,6 +80,75 @@ package com.util
 			var sql:String = "SELECT value  FROM system WHERE key =  :mbtilesPath";
 			stmtTemp.text = sql;
 			stmtTemp.parameters[":mbtilesPath"] = mbtilesPath;
+			stmtTemp.sqlConnection = this.dbConn;
+			try
+			{
+				stmtTemp.execute();
+				result = stmtTemp.getResult();
+				data = result.data;
+				if (data != null && data.length == 1)
+				{		
+					return data[0].value as String;
+				}
+				else
+				{
+					this._status = "查询结果为空";
+				}
+			}
+			catch (error:SQLError)
+			{
+				_status = "查询出错" + error.message;
+			}
+			return "";	
+		}
+		
+		
+		/**
+		 *保存为默认查询参数 
+		 * @return 
+		 * 
+		 */
+		public function updateDefaultParam(param:String):Boolean
+		{
+			var stmtTemp:SQLStatement = new SQLStatement();
+			var result:SQLResult;
+			var data:Array;
+			
+			var sql:String = "delete  FROM system WHERE key =  '"+defaultParam+"'";
+			stmtTemp.text = sql;
+			stmtTemp.sqlConnection = this.dbConn;
+			try
+			{
+				stmtTemp.execute();
+				
+				sql = "INSERT INTO system (key, value)  values (:key, :value)";
+				stmtTemp.text = sql;
+				stmtTemp.parameters[":key"] = defaultParam;
+				stmtTemp.parameters[":value"] = param;
+				stmtTemp.execute();
+				return true;
+			}
+			catch (error:SQLError)
+			{
+				return false;
+			}
+			return false;
+		}
+		
+		/**
+		 *加载默认的查询参数 
+		 * @return 
+		 * 
+		 */
+		public function loadDefaultParam():String
+		{
+			var stmtTemp:SQLStatement = new SQLStatement();
+			var result:SQLResult;
+			var data:Array;
+			
+			var sql:String = "SELECT value  FROM system WHERE key =  :defaultParam";
+			stmtTemp.text = sql;
+			stmtTemp.parameters[":defaultParam"] = defaultParam;
 			stmtTemp.sqlConnection = this.dbConn;
 			try
 			{
