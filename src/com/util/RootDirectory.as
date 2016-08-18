@@ -10,7 +10,7 @@ package com.util
 	public class RootDirectory
 	{		
 		/**离线读写数据库*/
-		public static var root:File = File.documentsDirectory;
+//		public static var root:File = File.documentsDirectory;
 		private static var _extSDCard:File = null;
 		
 		public function RootDirectory()

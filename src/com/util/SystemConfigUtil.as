@@ -1,5 +1,7 @@
 package com.util
 {
+	import com.vo.ConstVO;
+	
 	import flash.data.SQLConnection;
 	import flash.data.SQLMode;
 	import flash.data.SQLResult;
@@ -46,6 +48,7 @@ package com.util
 			catch (error:Error)
 			{
 				_status = "数据库文件不存在";
+				return false;
 			}
 			return false;
 		}// end function
@@ -216,7 +219,7 @@ package com.util
 				stmtTemp.execute();
 				result = stmtTemp.getResult();
 				data = result.data;
-				var allItem:Object = {NODE_ID:"360000",NODE_NAME:"----"};
+				var allItem:Object = {NODE_ID:"360000",NODE_NAME:ConstVO.NoSelectMark};
 				data.unshift(allItem);
 				return new ArrayCollection(data);
 			}
@@ -243,7 +246,7 @@ package com.util
 				stmtTemp.execute();
 				result = stmtTemp.getResult();
 				data = result.data;
-				var allItem:Object = {NODE_ID:cityCode,NODE_NAME:"----"};
+				var allItem:Object = {NODE_ID:cityCode,NODE_NAME:ConstVO.NoSelectMark};
 				data.unshift(allItem);
 				return new ArrayCollection(data);
 			}

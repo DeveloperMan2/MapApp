@@ -265,6 +265,7 @@ package com.mapping
 			catch (error:SQLError)
 			{
 				_status = "查询出错" + error.details;
+				return null;
 			}
 			return null;
 		}// end function
@@ -382,10 +383,8 @@ package com.mapping
 					return null;
 				}
 				metadata = new MetadataObj();
-				i;
 				while (i < data.length)
 				{
-					
 					obj = data[i];
 					key = String(obj.name).toLowerCase();
 					value = data[i].value as String;
@@ -455,6 +454,16 @@ package com.mapping
 						case "scale":
 						{
 							metadata.tileSize = int(value) *metadata.tileSize;
+							break;
+						}
+						case "minzoom":
+						{
+							metadata.minzoom = int(value);
+							break;
+						}
+						case "maxzoom":
+						{
+							metadata.maxzoom = int(value);
 							break;
 						}
 						default:

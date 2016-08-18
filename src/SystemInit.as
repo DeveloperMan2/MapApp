@@ -21,8 +21,7 @@ package
 			{	
 				var paths:Array = [
 					MainVO.MbMapsRootPath,
-					MainVO.SystemConfigPath,
-					MainVO.CachesRootPath
+					MainVO.SystemConfigPath
 				];	
 				
 				/**在内置SD上查找离线缓存-内置SD卡*/

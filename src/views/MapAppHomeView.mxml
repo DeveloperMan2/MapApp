@@ -3,16 +3,23 @@
 		xmlns:s="library://ns.adobe.com/flex/spark" 
 		xmlns:ns1="http://flex.apache.org/experimental/ns"
 		xmlns:supermap="http://www.supermap.com/mobile/2010"
+		xmlns:ns="http://flex.apache.org/experimental/ns"
+		xmlns:map="com.component.map.*"
 		actionBarVisible="true"
 		creationComplete="creationCompleteHandler(event)"
-		resize="resizeHandler(event)" xmlns:ns="http://flex.apache.org/experimental/ns">
+		resize="resizeHandler(event)">
 	<fx:Script>
 		<![CDATA[
 			import com.component.popup.MapDirContainer;
+			import com.mapping.MBTilesLayerEx;
 			import com.supermap.web.core.Point2D;
+			import com.supermap.web.mapping.Layer;
 			import com.util.AppEvent;
 			import com.util.QueryUtil;
 			import com.util.SystemConfigUtil;
+			import com.vo.ConstVO;
+			
+			import flash.utils.setTimeout;
 			
 			import mx.collections.ArrayCollection;
 			import mx.core.FlexGlobals;
@@ -38,21 +45,18 @@
 			protected function creationCompleteHandler(event:FlexEvent):void
 			{
 				AppEvent.addListener(AppEvent.MBTILES_PATH_CHANGE, mbtilesPathChangeHandler);
-				
+				AppEvent.addListener(AppEvent.APP_ERROR, showErrorHander);
 				//初始化系统运行参数
 				dm.initAppParam(FlexGlobals.topLevelApplication.runtimeDPI);
 				
 				//添加图标集装箱
 				dm.loadIconAssembly(FlexGlobals.topLevelApplication.runtimeDPI);
 				
-				//初始化系统目录
-				var initDirectory:SystemInit = new SystemInit();
-				initDirectory.initSystemDirectory(true);
-				
-				dm.initMap(this.map);
-				dm.addTdtLayer();
+				//初始地图
+				dm.initMapLayer(map);
 				
 				dm.initMarkSymbol();
+				
 				setMarkSymbolInputControl();
 				
 				//初始化查询对象
@@ -73,57 +77,49 @@
 			//修改mbtiles文件夹，重新获取查询对象
 			private function mbtilesPathChangeHandler(event:AppEvent):void
 			{
+				//关闭弹出路径设置窗口
 				setMapDir_clickHandler();
+				
+				//初始天地图图
+				dm.addTDTLayer();
+				
 				//初始化查询对象
 				queryUtil = dm.getQueryUtil(true);
 				
 				//初始化获取列表
 				searchBtn_clickHandler();
-				
-				mbLayerNameList_changeHandler();
 			}
 			
 			protected function mbLayerNameList_changeHandler():void
 			{
-				if (mbLayerNameList.selectedItem != null){
-					dm.addMbLayer(mbLayerNameList.selectedItem);
-				} else {
-					dm.removeMbLayer();
-				}
+				dm.addMbLayer(mbLayerNameList.selectedItem);
 			}
 			
 			/**全幅*/
 			protected function fullMapBtn_clickHandler(event:MouseEvent):void
 			{
-				// TODO Auto-generated method stub
 				this.map.viewBounds = dm.mapViewBounds;
 			}
 			
 			/**放大*/
 			protected function zoomInBtn_clickHandler(event:MouseEvent):void
 			{
-				// TODO Auto-generated method stub
 				this.map.zoomIn();
 			}
 			
 			/**缩小*/
 			protected function zoomOutBtn_clickHandler(event:MouseEvent):void
 			{
-				// TODO Auto-generated method stub
 				this.map.zoomOut();
 			}
 			
-			
-			
 			protected function ShowQueryPanel_clickHandler(event:MouseEvent):void
 			{
-				// TODO Auto-generated method stub
 				this.currentState = QUERYSTATE;
 			}
 			
 			protected function HideQueryPanel_clickHandler(event:MouseEvent):void
 			{
-				// TODO Auto-generated method stub
 				this.currentState = BROWSESTATE;
 			}
 			
@@ -141,14 +137,13 @@
 				//当不存在记录时，隐藏离线地图图层
 				if(resultList.length == 0 && dm.imageBaseLayer != null)
 				{
-					dm.imageBaseLayer.visible = false;
-					dm.map.refresh();
+					dm.imageBaseLayer.mbtilesPath = null;
 				} else {
 					mbLayerNameList.selectedIndex = 0;
+					mbLayerNameList_changeHandler();
 				}
 			}
 			
-			//-------------------------------------------
 			private var popup:MapDirContainer = null;
 			private var isShowPopup:Boolean = false;//默认不显示弹出面板
 			/**所有的弹出窗口统一响应*/
@@ -179,15 +174,19 @@
 			}
 			
 			//设置离线地图目录
+			private var oldTitle:String;
 			protected function setMapDir_clickHandler():void
 			{
 				if (popup != null && popup.isOpen)  
 				{  
+					dm.systemTitle = oldTitle;
 					popup.close();
 					this.isShowPopup = false;
 				}
 				else
 				{
+					oldTitle = dm.systemTitle;
+					dm.systemTitle = "请选择SD卡。SD卡包含MbMaps文件夹";
 					popup = openPopUP(popup,MapDirContainer) as MapDirContainer;
 					this.isShowPopup = true;
 				}
@@ -215,7 +214,7 @@
 			
 			[Bindable]
 			private var mapLevelCol:ArrayCollection = new ArrayCollection([
-				{name:"----", value:-1},
+				{name:ConstVO.NoSelectMark, value:-1},
 				{name:"第1级", value:1},
 				{name:"第2级", value:2},
 				{name:"第3级", value:3},
@@ -232,13 +231,16 @@
 				{name:"第14级", value:14},
 				{name:"第15级", value:15},
 				{name:"第16级", value:16},
-				{name:"第17级", value:17}
+				{name:"第17级", value:17},
+				{name:"第18级", value:18},
+				{name:"第19级", value:19},
+				{name:"第20级", value:20}
 			]);
 			
 			protected function mapLevelListId_creationCompleteHandler(event:FlexEvent):void
 			{
 				// TODO Auto-generated method stub
-				if(this.mapLevelId.text != "----")
+				if(this.mapLevelId.text != ConstVO.NoSelectMark)
 				{
 					var items:ArrayCollection = this.mapLevelListId.dataProvider as ArrayCollection;
 					for each(var item:Object in items)
@@ -254,12 +256,11 @@
 			
 			protected function cityListId_creationCompleteHandler(event:FlexEvent):void
 			{
-				// TODO Auto-generated method stub
 				//初始化行政区划查询数据
 				systemConfigUtil = dm.getSystemConfigUtil();
 				cityListId.dataProvider = systemConfigUtil.queryCityList();
 				cityListId.selectedIndex = 0;	
-				if(this.cityId.text != "----")
+				if(this.cityId.text != ConstVO.NoSelectMark)
 				{
 					var items:ArrayCollection = this.cityListId.dataProvider as ArrayCollection;
 					for each(var item:Object in items)
@@ -292,30 +293,18 @@
 				var keyWord:String = StringUtil.trim(this.dataKeyWord.text.toString());
 				var level:String = this.mapLevelId.text;
 				var levelValue:int=-1;
-				if(level != "----")
+				if(level != ConstVO.NoSelectMark)
 				{
 					levelValue = parseInt(this.mapLevelListId.selectedItem["value"]);
 				}
-				//				map.addEventListener(MouseEvent.CLICK, clickHandler);
-				var bt:Button = event.currentTarget as Button;
-				if (bt == mark1MapBtn) {
-					dm.mark1Layer.visible = !dm.mark1Layer.visible;
-				} else {
-					dm.mark2Layer.visible = !dm.mark2Layer.visible;
-				}
-				
 				var city:String = this.cityId.text;
 				var cityValue:String = "";
-				if(city != "----")
+				if(city != ConstVO.NoSelectMark)
 				{
 					cityValue = this.cityListId.selectedItem["NODE_ID"];
 				}
 				var param:String = keyWord + "," + level + "#" + levelValue + "," + city + "#" + cityValue;
 				systemConfigUtil.updateDefaultParam(param);
-				//				var left:Number = Coordinate.Mercator2Lon(12633199.708030969);
-				//				var top:Number = Coordinate.Mercator2Lat(3492718.725923287);
-				//				var right:Number = Coordinate.Mercator2Lon(13139518.583301282);
-				//				var bottom:Number = Coordinate.Mercator2Lat(2866546.590323287);
 			}
 			
 			//加载默认查询参数
@@ -331,7 +320,7 @@
 					systemConfigUtil = dm.getSystemConfigUtil();
 					var param:String = systemConfigUtil.loadDefaultParam();
 					var params:Array = param.split(",");
-					if(params != null && params.length > 0)
+					if(params != null && params.length == 3)
 					{
 						keyWord = params[0];
 						
@@ -343,9 +332,9 @@
 						city = citys[0];
 						cityValue = citys[1];
 						
-						this.dataKeyWord.text = keyWord;
-						this.mapLevelId.text = level;
-						this.cityId.text = city;
+						this.dataKeyWord.text = keyWord != null ? keyWord : "";
+						this.mapLevelId.text = level != "undefined" ? level : ConstVO.NoSelectMark ;
+						this.cityId.text = city != "undefined" ? city : ConstVO.NoSelectMark;
 					}
 				}
 				else
@@ -373,7 +362,7 @@
 			protected function mapLevelCalloutBtnID_openHandler(event:DropDownEvent):void
 			{
 				// TODO Auto-generated method stub
-				if(this.mapLevelId.text != "----")
+				if(this.mapLevelId.text != ConstVO.NoSelectMark)
 				{
 					var items:ArrayCollection = this.mapLevelListId.dataProvider as ArrayCollection;
 					for each(var item:Object in items)
@@ -390,7 +379,7 @@
 			protected function cityCalloutBtnID_openHandler(event:DropDownEvent):void
 			{
 				// TODO Auto-generated method stub
-				if(this.cityId.text != "----")
+				if(this.cityId.text !=  ConstVO.NoSelectMark)
 				{
 					var items:ArrayCollection = this.cityListId.dataProvider as ArrayCollection;
 					for each(var item:Object in items)
@@ -431,6 +420,35 @@
 				textInput.selectRange(textInput.text.length, textInput.text.length);
 			}
 			
+			private function markMapBtn_clickHandler(event:MouseEvent):void
+			{
+				//				map.addEventListener(MouseEvent.CLICK, clickHandler);
+				var bt:Button = event.currentTarget as Button;
+				if (bt == mark1MapBtn) {
+					dm.mark1Layer.visible = !dm.mark1Layer.visible;
+				} else if (bt == mark2MapBtn){
+					dm.mark2Layer.visible = !dm.mark2Layer.visible;
+				} else if (bt == tdtLbMapBtn) {
+					for each(var layer:Layer in map.layers) {
+						if (layer is MBTilesLayerEx && layer.id.search(ConstVO.TdtLabelLayerPostfix) != -1) {
+							layer.visible = !layer.visible;
+						}
+					}
+				}
+			}
+			
+			//显示错误
+			private function showErrorHander(event:AppEvent):void
+			{
+				toolTipContent.visible = true;
+				toolTipLb.text = event.data as String;
+				setTimeout(hideErrorHander, 3000);
+			}
+			
+			private function hideErrorHander():void
+			{
+				toolTipContent.visible = false;
+			}
 		]]>
 	</fx:Script>
 	<s:states>
@@ -450,12 +468,12 @@
 		<s:Button id="setMapDir" icon="{dm.iconAssembly.userIcon}" toolTip="设置地图目录" click="setMapDir_clickHandler()"/>
 	</s:actionContent>
 	<!--<s:HGroup width="100%" height="100%">-->
-	<supermap:Map id="map" width="100%" height="100%"/>
+    <map:MapCtrl id="map" width="100%" height="100%"/>
 	<s:Group height="100%"
 			 includeIn="QueryState" left="0">
 		<s:Rect width="100%" height="100%">
 			<s:fill>
-				<s:SolidColor color="#FFFFFF" alpha="0.5"/>
+				<s:SolidColor color="#FFFFFF"/>
 			</s:fill>
 		</s:Rect>
 		<s:VGroup height="100%" width="{320*dm.mapUIScale}" paddingLeft="{5*dm.multiResolution}"
@@ -467,7 +485,7 @@
 			</s:HGroup>
 			<s:HGroup width="100%" gap="{5*dm.multiResolution}" horizontalAlign="left" verticalAlign="middle">
 				<s:TextInput id="mapLevelId" prompt="请选择级别" 
-							 text="----"
+							 text="{ConstVO.NoSelectMark}"
 							 width="100%" contentBackgroundAlpha="0" 
 							 editable="false" selectable="false" 
 							 mouseChildren="false" mouseEnabled="false"/>
@@ -475,7 +493,8 @@
 								 label="级    别>>"
 								 iconPlacement="left"
 								 skinClass="com.skin.QueryButtonSkin"
-								 open="mapLevelCalloutBtnID_openHandler(event)">
+								 open="mapLevelCalloutBtnID_openHandler(event)"
+								 close="searchBtn_clickHandler()">
 					<s:calloutContent>
 						<s:List id="mapLevelListId" width="{260*dm.multiResolution}"
 								height="100%"
@@ -492,7 +511,7 @@
 			</s:HGroup>
 			<s:HGroup width="100%" gap="{5*dm.multiResolution}" horizontalAlign="left" verticalAlign="middle">
 				<s:TextInput id="cityId" prompt="请选择行政区划" 
-							 text="----"
+							 text="{ConstVO.NoSelectMark}"
 							 width="100%" contentBackgroundAlpha="0" 
 							 editable="false" selectable="false" 
 							 mouseChildren="false" mouseEnabled="false"/>
@@ -500,7 +519,8 @@
 								 label="行政区>>"
 								 iconPlacement="left"
 								 skinClass="com.skin.QueryButtonSkin"
-								 open="cityCalloutBtnID_openHandler(event)">
+								 open="cityCalloutBtnID_openHandler(event)"
+								 close="searchBtn_clickHandler()">
 					<s:calloutContent>
 						<s:List id="cityListId" width="{260*dm.multiResolution}"
 								height="100%"
@@ -539,10 +559,10 @@
 						 width="100%" height="{48*dm.multiResolution}" backgroundAlpha="0"/>
 			</s:HGroup>	
 			<s:List id="mbLayerNameList" width="100%" height="100%"
-					requireSelection="true" selectedIndex="0"
+					requireSelection="true" selectedIndex="0" 
 					textAlign="left"  contentBackgroundAlpha="0"
 					itemRenderer="com.renderer.LayerItemRenderer"
-					valueCommit="mbLayerNameList_changeHandler()">							
+					change="mbLayerNameList_changeHandler()">							
 			</s:List>
 		</s:VGroup>
 	</s:Group>
@@ -555,6 +575,8 @@
 				  icon="{dm.iconAssembly.zoomInIcon}" styleName="OperationButton" click="zoomInBtn_clickHandler(event)"/>
 		<s:Button id="zoomOutBtn" 
 				  icon="{dm.iconAssembly.zoomOutIcon}" styleName="OperationButton" click="zoomOutBtn_clickHandler(event)"/>
+		<s:Button id="tdtLbMapBtn" 
+				  icon="{dm.iconAssembly.posIcon}" styleName="OperationButton" click="markMapBtn_clickHandler(event)"/>
 		<s:Button id="mark1MapBtn" 
 				  icon="{dm.iconAssembly.trafficIcon}" styleName="OperationButton" click="markMapBtn_clickHandler(event)"/>
 		<s:Button id="mark2MapBtn" 
@@ -567,9 +589,9 @@
 						<s:SolidColor alpha="0.8" color="0xFFFFFF" />
 					</s:fill>
 				</s:Rect>
-				<s:VGroup width="100%">
-						<s:HSlider id="imageAlphaSlider" minimum="0" maximum="1"  value="1"  stepSize="0.1" width="100%"
-								   change="imageAlphaSlider_changeHandler(event)"/>
+				<s:VGroup width="100%" paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5">
+					<s:HSlider id="imageAlphaSlider" minimum="0" maximum="1"  value="1"  stepSize="0.1" width="100%"
+							   change="imageAlphaSlider_changeHandler(event)"/>
 					<s:Label text="注记1" backgroundAlpha="0" verticalAlign="middle"/>
 					<s:HGroup width="100%" verticalAlign="middle">
 						<s:Label text="字号" verticalAlign="middle" height="100%" backgroundAlpha="0"/>
@@ -590,4 +612,13 @@
 			</s:Group>
 		</s:VGroup>
 	</s:VGroup>
+	<s:Group id="toolTipContent" visible="false" horizontalCenter="0" verticalCenter="0" minHeight="{90*dm.multiResolution}" 
+			 minWidth="{200*dm.multiResolution}">
+		<s:Rect width="100%" height="100%">
+			<s:fill>
+				<s:SolidColor alpha="0.8" color="0xFFFFFF" />
+			</s:fill>
+		</s:Rect>
+			<s:Label id="toolTipLb" horizontalCenter="0" verticalCenter="0"/>
+	</s:Group>
 </s:View>

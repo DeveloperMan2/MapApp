@@ -46,6 +46,7 @@ package com.util
 		//
 		//--------------------------------------------------------------------------
 		public static const MBTILES_PATH_CHANGE:String = "mbDataChange";
+		
 		/**
 		 * The error event type. This event type is used to send a user friendly
 		 * error message via the event bus. A error window will display the error

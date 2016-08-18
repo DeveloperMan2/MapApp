@@ -1,23 +1,23 @@
 package
 {
 	import com.component.iconbutton.ButtonItem;
+	import com.component.map.MapCtrl;
+	import com.mapping.FeaturesLayerEx;
 	import com.mapping.MBTilesLayerEx;
-	import com.mapping.TiledTDTLayer;
 	import com.supermap.web.core.Feature;
 	import com.supermap.web.core.Rectangle2D;
-	import com.supermap.web.core.geometry.GeoLine;
 	import com.supermap.web.core.geometry.GeoPoint;
 	import com.supermap.web.core.styles.TextStyle;
 	import com.supermap.web.mapping.FeaturesLayer;
-	import com.supermap.web.mapping.Map;
-	import com.supermap.web.mapping.OfflineStorage;
-	import com.supermap.web.mapping.TiledCachedLayer;
+	import com.supermap.web.mapping.Layer;
+	import com.supermap.web.utils.ScaleUtil;
 	import com.util.AppEvent;
 	import com.util.Coordinate;
 	import com.util.QueryUtil;
 	import com.util.RootDirectory;
 	import com.util.SystemConfigUtil;
 	import com.vo.BrowseVO;
+	import com.vo.ConstVO;
 	import com.vo.MainVO;
 	import com.vo.MapVO;
 	
@@ -120,22 +120,16 @@ package
 		public var mapVo:MapVO = new MapVO();
 		
 		/**地图对象*/
-		public var map:Map = null;
+		public var map:MapCtrl = null;
 		/**地图显示区域*/
 		public var mapRect:Rectangle2D = null;
 		
 		/**影像底图*/
 		public var imageBaseLayer:MBTilesLayerEx=null;
-		/**矢量底图*/
-		public var vectorBaseLayer:TiledCachedLayer = null;
 		
-		public static const  mark1LayerId:String = "mark1Layer";
-		public static const  mark2LayerId:String = "mark2Layer";
-		
-		public var _mark1Layer:FeaturesLayer = null;
-		public var _mark2Layer:FeaturesLayer = null;
-		/**矢量底图标注*/
-		public var vectorLabelBaseLayer:TiledCachedLayer = null;
+		/**注记图层*/
+		public var mark1Layer:FeaturesLayerEx = null;
+		public var mark2Layer:FeaturesLayerEx = null;
 		
 		/**离线影像图层列表*/
 		public var ImgLayerArrCol:ArrayCollection = null;
@@ -155,8 +149,6 @@ package
 		public var mark2Size:int;
 		
 		/**
-		 * 
-		 * 
 		 *初始化系统运行参数 
 		 * @param dpi:移动设备运行DPi
 		 */
@@ -171,54 +163,150 @@ package
 		}
 		
 		/**
-		 * 初始化注记1图层
-		 */
-		public function get mark1Layer():FeaturesLayer
-		{
-			if (_mark1Layer == null || map.getLayer(mark1LayerId) == null) {
-				_mark1Layer = new FeaturesLayer();
-				_mark1Layer.id = mark1LayerId;
-				_mark1Layer.isPanEnableOnFeature = true;
-				_mark1Layer.visible = false;
-				map.addLayer(_mark1Layer);
-			}
-			map.moveLayer(mark1LayerId,map.layerIds.length -1);
-			return _mark1Layer;
-		}
-		
-		/**
-		 * 初始化注记2图层
-		 */
-		public function get mark2Layer():FeaturesLayer
-		{
-			if (_mark2Layer == null || map.getLayer(mark2LayerId) == null) {
-				_mark2Layer = new FeaturesLayer();
-				_mark2Layer.isPanEnableOnFeature = true;
-				_mark2Layer.id = mark2LayerId;
-				_mark2Layer.visible = false;
-				map.addLayer(_mark2Layer);
-			}
-			map.moveLayer(mark2LayerId,map.layerIds.length -1);
-			return _mark2Layer;
-		}
-		
-		/**
-		 *初始化地图 
+		 *初始化地图 ,地图图层
 		 * @param map
 		 */
-		public function initMap(map:Map):void
+		public function initMapLayer(map:MapCtrl):void
+		{
+			this.map = map;
+			addTDTLayer();
+			
+			//初始化影像
+			imageBaseLayer = new MBTilesLayerEx();
+			imageBaseLayer.layerType = 1;
+			map.addLayer(imageBaseLayer);
+			
+			//初始化两个注记图层
+			mark1Layer = new FeaturesLayerEx();
+			mark1Layer.layerType = 3;
+			mark1Layer.layerIndex = 0;
+			mark1Layer.isPanEnableOnFeature = true;
+			mark1Layer.visible = false;
+			map.addLayer(mark1Layer);
+			
+			mark2Layer = new FeaturesLayerEx();
+			mark2Layer.layerType = 3;
+			mark2Layer.layerIndex = 1;
+			mark2Layer.isPanEnableOnFeature = true;
+			mark2Layer.visible = false;
+			map.addLayer(mark2Layer);
+			
+			map.sortLayers(["layerType","layerIndex"], null,[true,true]);
+		}
+		
+		//设置地图比例尺
+		private function initMapResolutions():void
 		{
 			var resolutions:Array = [];
-			for(var i:int=0 ; i<=18;i++){
-				resolutions.push(156543.0339/Math.pow(2,i));
+			var scales:Array = [];
+			var resolution:Number;
+			var scale:Number;
+			for(var i:int=0 ; i<= 20;i++){
+				resolution = 156543.0339/Math.pow(2,i);
+				scale = ScaleUtil.resolutionToScale(resolution,96,"meter");
+				resolutions.push(resolution);
+				scales.push(scale);
 			}
 			map.resolutions = resolutions;
-			this.map = map;
+			map.scales = scales;
+		}
+		
+		//显示天地图
+		public function addTDTLayer():void
+		{
+			removeTDTLayer();
+			
+			initMapResolutions();
+			
+			//初始化天地图底图,对应多个地图文件
+			var tdtBaseMapMbtilesPath:String = getSystemConfigMbtilesPath() + MainVO.TDTBaseMapMbtilesFolder;
+			var tdtBaseMapMbtilesFile:File = File.documentsDirectory.resolvePath(tdtBaseMapMbtilesPath);
+			if (tdtBaseMapMbtilesFile.exists == false || tdtBaseMapMbtilesFile.isDirectory == false) {
+				tdtBaseMapMbtilesFile.createDirectory();
+				AppEvent.dispatch(AppEvent.APP_ERROR, "没有底图文件夹");
+				return;
+			}
+			var tdtBaseMapMbtileFileList:Array = tdtBaseMapMbtilesFile.getDirectoryListing();
+			var fileItem:File;
+			var temp:Array;
+			var fileName:String;
+			var postfix:String;
+			var baseMapTdtLayer:MBTilesLayerEx;
+			var layerId:int = 0;
+			for each(fileItem in tdtBaseMapMbtileFileList) {
+				if (fileItem.isDirectory == false) {
+					temp =	fileItem.nativePath.split(File.separator);
+					fileName = temp[temp.length-1];
+					temp = fileName.split(".");
+					if (temp.length == 2) {
+						postfix = temp[1];
+						if(postfix == ConstVO.postfixMbtiles) {
+							baseMapTdtLayer = new MBTilesLayerEx();
+							baseMapTdtLayer.mbtilesPath = fileItem.nativePath;
+							baseMapTdtLayer.id = ConstVO.TdtLayerPostfix+layerId;
+							baseMapTdtLayer.layerType = 0;
+							map.addLayer(baseMapTdtLayer);
+							layerId ++;
+						}
+					}
+				}
+			}
+			if (layerId == 0) {
+				AppEvent.dispatch(AppEvent.APP_ERROR, "底图文件数是零");
+			}
+			
+			//初始化天地图注记,对应多个地图文件
+			var tdtBaseLabelMbtilesPath:String = getSystemConfigMbtilesPath() + MainVO.TDTBaseLabelMbtilesFolder;
+			var tdtBaseLabelMbtilesFile:File = File.documentsDirectory.resolvePath(tdtBaseLabelMbtilesPath);
+			if (tdtBaseLabelMbtilesFile.exists == false || tdtBaseLabelMbtilesFile.isDirectory == false) {
+				tdtBaseLabelMbtilesFile.createDirectory();
+				AppEvent.dispatch(AppEvent.APP_ERROR, "没有底图注记文件夹");
+				return;
+			}
+			var tdtBaseLabelMbtileFileList:Array = tdtBaseLabelMbtilesFile.getDirectoryListing();
+			layerId = 0;
+			for each( fileItem in tdtBaseLabelMbtileFileList) {
+				if (fileItem.isDirectory == false) {
+					temp =	fileItem.nativePath.split(File.separator);
+					fileName = temp[temp.length-1];
+					temp = fileName.split(".");
+					if (temp.length == 2) {
+						postfix = temp[1];
+						if(postfix == ConstVO.postfixMbtiles) {
+							baseMapTdtLayer = new MBTilesLayerEx();
+							baseMapTdtLayer.mbtilesPath = fileItem.nativePath;
+							baseMapTdtLayer.id = ConstVO.TdtLabelLayerPostfix +layerId;
+							baseMapTdtLayer.layerType = 2;
+							map.addLayer(baseMapTdtLayer);
+							layerId ++;
+						}
+					}
+				}
+			}
+			if (layerId == 0) {
+				AppEvent.dispatch(AppEvent.APP_ERROR, "底图注记文件数是零");
+			}
+			map.sortLayers(["layerType","layerIndex"], null,[true,true]);
+		}
+		
+		/**清除天地图*/
+		private function removeTDTLayer():void
+		{
+			//先清除已有天地图图层
+			var removeTdtLayer:Array = [];
+			var layer:Layer
+			for each( layer in map.layers) {
+				if (layer is MBTilesLayerEx && (layer.id.search(ConstVO.TdtLayerPostfix) != -1 || layer.id.search(ConstVO.TdtLabelLayerPostfix) != -1)) {
+					removeTdtLayer.push(layer);
+				}
+			}
+			for each( layer in removeTdtLayer) {
+				map.removeLayer(layer);
+			}
 		}
 		
 		/**
 		 *重置地图位置 
-		 * 
 		 */
 		public function resetMapPosition(rect:Rectangle2D):void
 		{
@@ -226,48 +314,34 @@ package
 		}
 		
 		/**
-		 *加载离线地图 
+		 *加载影像离线地图 
 		 * @param layVo
 		 * 
 		 */
 		public function addMbLayer(bVo:Object):void
 		{
-			var layerUrl:String = getSystemConfigMbtilesPath() +bVo.path;
-			var mbtilesFolder:File = File.applicationDirectory.resolvePath(layerUrl);
-			if (!mbtilesFolder.exists || mbtilesFolder.isDirectory) {
-				if (dm.imageBaseLayer != null && map.getLayer(dm.imageBaseLayer.id) != null) {
-					map.removeLayer(dm.imageBaseLayer);
-					dm.imageBaseLayer = null;
+			if (bVo != null) {
+				var layerUrl:String = getSystemConfigMbtilesPath() +bVo.path;
+				var mbtilesFolder:File = File.applicationDirectory.resolvePath(layerUrl);
+				if (!mbtilesFolder.exists || mbtilesFolder.isDirectory) {
+					imageBaseLayer.mbtilesPath = null;
+					AppEvent.dispatch(AppEvent.APP_ERROR, bVo.path+"不存在");
+					return
 				}
-				return
-			}
-			this.systemTitle = bVo["name"];//设置应用标题
-			var layerAlpha:int = 1;
-			if(this.imageBaseLayer != null && map.getLayer(imageBaseLayer.id) != null)
-			{
-				imageBaseLayer.visible = true;
-				layerAlpha = imageBaseLayer.alpha;
+				this.systemTitle = bVo["name"];//设置应用标题
 				imageBaseLayer.mbtilesPath =layerUrl;
-				map.moveLayer(imageBaseLayer.id,map.layerIds.length-1);
-				this.map.refresh();
-				//this.map.removeLayer(imageBaseLayer);//此处删除再添加存在问题，离线地图无法再添加。
+				var markStr:String = bVo["mark1"];
+				creationMarkFeature(markStr, mark1Size, mark1Color, mark1Layer);
+				
+				markStr = bVo["mark2"];
+				creationMarkFeature(markStr, mark2Size, mark2Color, mark2Layer);
+				
+				dm.resetMapPosition(imageBaseLayer.bounds);
+			} else {
+				imageBaseLayer.mbtilesPath = null;
+				mark1Layer.clear();
+				mark2Layer.clear();
 			}
-			else
-			{
-				imageBaseLayer = new MBTilesLayerEx();
-				imageBaseLayer.alpha = layerAlpha;
-				imageBaseLayer.id = "imageBaseLayer";
-				imageBaseLayer.mbtilesPath = layerUrl;
-				this.initMap(map);
-				this.map.addLayer(imageBaseLayer);
-			}
-			var markStr:String = bVo["mark1"];
-			creationMarkFeature(markStr, mark1Size, mark1Color, mark1Layer);
-			
-			markStr = bVo["mark2"];
-			creationMarkFeature(markStr, mark2Size, mark2Color, mark2Layer);
-			
-			dm.resetMapPosition(imageBaseLayer.bounds);
 		}
 		
 		private function creationMarkFeature(markStr:String, markSize:int, markColor:uint, featureLayer:FeaturesLayer ):void
@@ -292,18 +366,6 @@ package
 						}
 					}
 				}
-			}
-		}
-		
-		/**
-		 * 移除影像地图
-		 */
-		public function removeMbLayer():void
-		{
-			if (imageBaseLayer && map && map.getLayer(dm.imageBaseLayer.id) != null) {
-				map.removeLayer(imageBaseLayer);
-				imageBaseLayer = null;
-				mark1Layer.clear();
 			}
 		}
 		
@@ -363,48 +425,6 @@ package
 			mark2Layer.refresh();
 		}
 		
-		
-		/**
-		 *加载天地图 
-		 * 
-		 */
-		public function addTdtLayer():void
-		{
-			//			var superOfflineStorage:OfflineStorage = new OfflineStorage();
-			//			superOfflineStorage.userRootDirectory = MainVO.CachesRootPath + "tdt";
-			//			
-			//			var tdtLayer:TiledTDTLayer = new TiledTDTLayer();
-			//			tdtLayer.projection = "10010";
-			//			tdtLayer.offlineStorage = superOfflineStorage;
-			//			map.addLayer(tdtLayer);
-			//			
-			//			var superLabelOfflineStorage:OfflineStorage = new OfflineStorage();
-			//			superLabelOfflineStorage.userRootDirectory = MainVO.CachesRootPath + "tdtLabel";
-			//			
-			//			var tdtLabelLayer:TiledTDTLayer = new TiledTDTLayer();
-			//			tdtLabelLayer.projection = "10010";
-			//			tdtLabelLayer.offlineStorage = superLabelOfflineStorage;
-			//			tdtLabelLayer.isLabel = true;
-			//			map.addLayer(tdtLabelLayer);
-			
-			var tdtLayerUrl:String = getSystemConfigMbtilesPath() +"tdt.mbtiles";
-			var file:File = File.applicationDirectory.resolvePath(tdtLayerUrl);
-			if (file.exists && file.isDirectory == false){
-				var tdtLayer:MBTilesLayerEx = new MBTilesLayerEx();
-				tdtLayer.mbtilesPath = tdtLayerUrl;
-				map.addLayer(tdtLayer);
-				this.vectorBaseLayer = tdtLayer;
-			}			
-			tdtLayerUrl = getSystemConfigMbtilesPath() +"tdtlb.mbtiles";
-			file = File.applicationDirectory.resolvePath(tdtLayerUrl);
-			if (file.exists && file.isDirectory == false){
-				var tdtLabelLayer:MBTilesLayerEx = new MBTilesLayerEx();
-				tdtLabelLayer.mbtilesPath = tdtLayerUrl;
-				map.addLayer(tdtLabelLayer);
-				this.vectorLabelBaseLayer = tdtLabelLayer;
-			}
-		}
-		
 		/**视图切换特效*/
 		public function getTransition(name:String="cross"):ViewTransitionBase
 		{
@@ -433,30 +453,6 @@ package
 			//var linear:Linear = new Linear();
 			//comTransition.easer = sine;
 			return comTransition;
-		}
-		
-		/**初始化App图层数据*/
-		public function initAppLayerCol():void
-		{
-			//			var directory:File = null;
-			//			/**在支持支持SDCard的设备上查找离线缓存-外置SD卡*/
-			//			if(RootDirectory.hasExtSDCard())
-			//			{
-			//				//此处存在外置SD卡访问的写权限问题
-			//				directory = RootDirectory.extSDCard.resolvePath(MainVO.MbMapsRootPath); 
-			//			}
-			//			else
-			//			{
-			//				/**在内置SD上查找离线缓存-内置SD卡*/
-			//				directory = RootDirectory.root.resolvePath(MainVO.MbMapsRootPath); 
-			//			}
-			//			findOfflineMap(directory);
-			
-			//直接访问内置SD卡
-			//			var directory:File = RootDirectory.root.resolvePath(MainVO.MbMapsRootPath); 
-			//			this.defaultMbTilesDir = directory;
-			//			
-			//			findOfflineMap(directory);
 		}
 		
 		//异步加载影像离线地图列表
@@ -597,7 +593,7 @@ package
 			//如果system.db没有配置路径，获取系统目录,复制查询的image.db
 			if (_systemConfigUtil == null) {
 				var destinaPath:String = MainVO.SystemConfigPath + MainVO.SystemDBFileName;
-				var destinaSystemDbFile:File = RootDirectory.root.resolvePath(destinaPath);
+				var destinaSystemDbFile:File = File.documentsDirectory.resolvePath(destinaPath);
 				var originSystemDbFile:File;
 				if (destinaSystemDbFile.exists == false) {
 					originSystemDbFile = File.applicationDirectory.resolvePath(MainVO.OriginDBPath+MainVO.SystemDBFileName);
@@ -606,16 +602,17 @@ package
 				}
 				
 				_systemConfigUtil = new SystemConfigUtil(destinaSystemDbFile.nativePath);
-				_systemConfigUtil.open();
-				//针对新建的area表，如果系统运行的库里没有，删除库重新复制到系统里
-				if (_systemConfigUtil.queryCityList() == null) {
-					_systemConfigUtil.close();
-					originSystemDbFile = File.applicationDirectory.resolvePath(MainVO.OriginDBPath+MainVO.SystemDBFileName);
-					originSystemDbFile.copyTo(destinaSystemDbFile,true);
+				if(_systemConfigUtil.open() == false) {
+					AppEvent.dispatch(AppEvent.APP_ERROR, "打开系统数据失败");
 				}
-				
-				_systemConfigUtil = new SystemConfigUtil(destinaSystemDbFile.nativePath);
-				_systemConfigUtil.open();
+//				//针对新建的area表，如果系统运行的库里没有，删除库重新复制到系统里
+//				if (_systemConfigUtil.queryCityList() == null) {
+//					_systemConfigUtil.close();
+//					originSystemDbFile = File.applicationDirectory.resolvePath(MainVO.OriginDBPath+MainVO.SystemDBFileName);
+//					originSystemDbFile.copyTo(destinaSystemDbFile,true);
+//				}
+//				_systemConfigUtil = new SystemConfigUtil(destinaSystemDbFile.nativePath);
+//				_systemConfigUtil.open();
 			}
 			return _systemConfigUtil;
 		}
@@ -624,13 +621,24 @@ package
 		public function getSystemConfigMbtilesPath():String
 		{
 			var mbtilesPath:String = getSystemConfigUtil().queryMbtilesFolderPath();
-			if (mbtilesPath == File.separator || mbtilesPath.length <= 1) {
-				mbtilesPath = RootDirectory.root.resolvePath(MainVO.MbMapsRootPath).nativePath;
+			if (mbtilesPath == "" || mbtilesPath == null || mbtilesPath == File.separator || mbtilesPath.length <= 1) {
+				var mbtilesFile:File = File.documentsDirectory.resolvePath(MainVO.MbMapsRootPath);
+				if (mbtilesFile.exists == false && mbtilesFile.isDirectory == false) {
+					mbtilesFile.createDirectory();
+				}
+				mbtilesPath = File.documentsDirectory.nativePath;
 				setSystemConfigMbtilesPath(mbtilesPath);
 			}
-			mbtilesPath = mbtilesPath.charAt(mbtilesPath.length - 1) == File.separator ? mbtilesPath : mbtilesPath + File.separator;
+			mbtilesPath = mbtilesPath.charAt(mbtilesPath.length - 1) == File.separator ? mbtilesPath+ MainVO.MbMapsRootPath : mbtilesPath + File.separator+ MainVO.MbMapsRootPath;
 			
 			return mbtilesPath;
+		}
+		
+		private function resolveFileSeparate(path:String):void
+		{
+			if(path != null && path.lastIndexOf(File.separator) != path.length-1) {
+				path = path + File.separator;
+			}
 		}
 		
 		//更新系统影像文件mbtiles文件路径，通过system.db查询
@@ -649,12 +657,15 @@ package
 				var destinaPath:String = getSystemConfigMbtilesPath() + MainVO.QueryDBFileName;
 				var destinaQueryDbFile:File = File.documentsDirectory.resolvePath(destinaPath);
 				if (destinaQueryDbFile.exists == false) {
+					AppEvent.dispatch(AppEvent.APP_ERROR, "无查询文件,系统复制查询文件");
 					var originQueryDbFile:File = File.applicationDirectory.resolvePath(MainVO.OriginDBPath+MainVO.QueryDBFileName);
 					destinaQueryDbFile.parent.createDirectory();
 					originQueryDbFile.copyTo(destinaQueryDbFile,true);
-				}
+				} 
 				_queryUtil = new QueryUtil(destinaQueryDbFile.nativePath);
-				_queryUtil.open();
+				if (_queryUtil.open() == false) {
+					AppEvent.dispatch(AppEvent.APP_ERROR, "打开查询数据失败");
+				}
 			}
 			return _queryUtil;
 		}
