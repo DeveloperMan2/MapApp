@@ -16,15 +16,15 @@
 			
 			protected function initMapAppHandler(event:FlexEvent):void
 			{
-				//初始化系统运行参数
-				dm.initAppParam(this.runtimeDPI);
-				
-				//添加图标集装箱
-				dm.loadIconAssembly(this.runtimeDPI);
-				
-				//初始化系统目录
-				var initDirectory:SystemInit = new SystemInit();
-				initDirectory.initSystemDirectory(true);
+//				//初始化系统运行参数
+//				dm.initAppParam(this.runtimeDPI);
+//				
+//				//添加图标集装箱
+//				dm.loadIconAssembly(this.runtimeDPI);
+//				
+//				//初始化系统目录
+//				var initDirectory:SystemInit = new SystemInit();
+//				initDirectory.initSystemDirectory(true);
 			}
 		]]>
 	</fx:Script>

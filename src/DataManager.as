@@ -3,13 +3,17 @@ package
 	import com.component.iconbutton.ButtonItem;
 	import com.mapping.MBTilesLayerEx;
 	import com.mapping.TiledTDTLayer;
+	import com.supermap.web.core.Feature;
 	import com.supermap.web.core.Rectangle2D;
+	import com.supermap.web.core.geometry.GeoLine;
+	import com.supermap.web.core.geometry.GeoPoint;
 	import com.supermap.web.core.styles.TextStyle;
 	import com.supermap.web.mapping.FeaturesLayer;
 	import com.supermap.web.mapping.Map;
 	import com.supermap.web.mapping.OfflineStorage;
 	import com.supermap.web.mapping.TiledCachedLayer;
 	import com.util.AppEvent;
+	import com.util.Coordinate;
 	import com.util.QueryUtil;
 	import com.util.RootDirectory;
 	import com.util.SystemConfigUtil;
@@ -125,8 +129,11 @@ package
 		/**矢量底图*/
 		public var vectorBaseLayer:TiledCachedLayer = null;
 		
-		public static const  markLayerId:String = "markLayer";
-		public var markLayer:FeaturesLayer = null;
+		public static const  mark1LayerId:String = "mark1Layer";
+		public static const  mark2LayerId:String = "mark2Layer";
+		
+		public var _mark1Layer:FeaturesLayer = null;
+		public var _mark2Layer:FeaturesLayer = null;
 		/**矢量底图标注*/
 		public var vectorLabelBaseLayer:TiledCachedLayer = null;
 		
@@ -142,6 +149,11 @@ package
 		
 		public var mapViewBounds:Rectangle2D;
 		
+		public var mark1Color:Number;
+		public var mark1Size:int;
+		public var mark2Color:Number;
+		public var mark2Size:int;
+		
 		/**
 		 * 
 		 * 
@@ -150,7 +162,7 @@ package
 		 */
 		public function initAppParam(dpi:Number=240):void
 		{
-			multiResolution = dpi/240;
+			multiResolution = Math.ceil(dpi/240);
 			mapUIScale = 1.0 * multiResolution;
 			headerHeight = headerHeight * multiResolution;
 			appIconScale = multiResolution/mapUIScale;
@@ -159,19 +171,35 @@ package
 		}
 		
 		/**
-		 * 初始化注记图层
+		 * 初始化注记1图层
 		 */
-		public function initMarkLayer():void
+		public function get mark1Layer():FeaturesLayer
 		{
-			if (markLayer == null || map.getLayer(markLayerId) == null) {
-				markLayer = new FeaturesLayer();
-				markLayer.id = markLayerId;
-				var textStyle:TextStyle = new TextStyle();
-				textStyle.textFormat = new TextFormat("msyh",13);
-				markLayer.style = textStyle;
-				map.addLayer(markLayer);
+			if (_mark1Layer == null || map.getLayer(mark1LayerId) == null) {
+				_mark1Layer = new FeaturesLayer();
+				_mark1Layer.id = mark1LayerId;
+				_mark1Layer.isPanEnableOnFeature = true;
+				_mark1Layer.visible = false;
+				map.addLayer(_mark1Layer);
 			}
-			map.moveLayer(markLayerId,map.layerIds.length -1);
+			map.moveLayer(mark1LayerId,map.layerIds.length -1);
+			return _mark1Layer;
+		}
+		
+		/**
+		 * 初始化注记2图层
+		 */
+		public function get mark2Layer():FeaturesLayer
+		{
+			if (_mark2Layer == null || map.getLayer(mark2LayerId) == null) {
+				_mark2Layer = new FeaturesLayer();
+				_mark2Layer.isPanEnableOnFeature = true;
+				_mark2Layer.id = mark2LayerId;
+				_mark2Layer.visible = false;
+				map.addLayer(_mark2Layer);
+			}
+			map.moveLayer(mark2LayerId,map.layerIds.length -1);
+			return _mark2Layer;
 		}
 		
 		/**
@@ -233,8 +261,108 @@ package
 				this.initMap(map);
 				this.map.addLayer(imageBaseLayer);
 			}
+			var markStr:String = bVo["mark1"];
+			creationMarkFeature(markStr, mark1Size, mark1Color, mark1Layer);
+			
+			markStr = bVo["mark2"];
+			creationMarkFeature(markStr, mark2Size, mark2Color, mark2Layer);
+			
 			dm.resetMapPosition(imageBaseLayer.bounds);
 		}
+		
+		private function creationMarkFeature(markStr:String, markSize:int, markColor:uint, featureLayer:FeaturesLayer ):void
+		{
+			featureLayer.clear();
+			if (markStr != null && markStr.length >0 ) {
+				var maskStrs:Array = markStr.split(";");
+				var textFormat:TextFormat = new TextFormat("嵌入字体", markSize*multiResolution, markColor);
+				for each(var itemStr:String in maskStrs) {
+					var parts:Array = itemStr.split(",");
+					if (parts.length == 3) {
+						if (parts[0] >=-180 && parts[0] <= 180 && parts[1] >= -90 && parts[1] <=90)
+						{
+							var geoPoint:GeoPoint = new GeoPoint(parts[0], parts[1]);
+							geoPoint = Coordinate.geographicToMercator(geoPoint) as GeoPoint;
+							var feature:Feature = new Feature(geoPoint);
+							var textStyle:TextStyle = new TextStyle(parts[2], markColor);
+							textStyle.size = markSize*multiResolution;
+							textStyle.textFormat = textFormat;
+							feature.style = textStyle;
+							featureLayer.addFeature(feature);
+						}
+					}
+				}
+			}
+		}
+		
+		/**
+		 * 移除影像地图
+		 */
+		public function removeMbLayer():void
+		{
+			if (imageBaseLayer && map && map.getLayer(dm.imageBaseLayer.id) != null) {
+				map.removeLayer(imageBaseLayer);
+				imageBaseLayer = null;
+				mark1Layer.clear();
+			}
+		}
+		
+		/**
+		 * 初始化注记样式
+		 */
+		public function initMarkSymbol():void
+		{
+			var markSymbolStr:String = getSystemConfigUtil().queryMarkSymbol();
+			if (markSymbolStr != null && markSymbolStr.split(",").length == 4)
+			{
+				var marks:Array = markSymbolStr.split(",");
+				mark1Color = parseInt(marks[0], 16);
+				mark1Size = parseInt(marks[1]);
+				mark2Color= parseInt(marks[2], 16);
+				mark2Size = parseInt(marks[3]);
+			}
+		}
+		
+		/**
+		 * 存储样式
+		 */
+		public function updateMarkSymbol():void
+		{
+			var markValues:Array = [convertString(mark1Color),mark1Size,convertString(mark2Color),mark2Size];
+			var markValue:String = markValues.join(",");
+			getSystemConfigUtil().updateMarkSymbol(markValue);
+			refreshMarkLayer();
+		}
+		
+		private function convertString(convertValue:Number,converLength:Number=6,leftChar:String="0x"):String
+		{
+			var convertNewValue:String = convertValue.toString(16);
+			while(convertNewValue.length < converLength)
+			{
+				convertNewValue="0"+convertNewValue;
+			}
+			convertNewValue = leftChar + convertNewValue;
+			return convertNewValue;
+		}
+		
+		public function refreshMarkLayer():void
+		{
+			var  feature:Feature;
+			var textStyle:TextStyle;
+			for each(feature in mark1Layer.features) {
+				textStyle = feature.style as TextStyle;
+				textStyle.textFormat.color = mark1Color;
+				textStyle.size = mark1Size*multiResolution;
+			}
+			for each(feature in mark2Layer.features) {
+				textStyle = feature.style as TextStyle;
+				textStyle.textFormat.color = mark2Color;
+				textStyle.size = mark2Size*multiResolution;
+			}
+			mark1Layer.refresh();
+			mark2Layer.refresh();
+		}
+		
 		
 		/**
 		 *加载天地图 
@@ -242,25 +370,39 @@ package
 		 */
 		public function addTdtLayer():void
 		{
-			var superOfflineStorage:OfflineStorage = new OfflineStorage();
-			superOfflineStorage.userRootDirectory = MainVO.CachesRootPath + "tdt";
+			//			var superOfflineStorage:OfflineStorage = new OfflineStorage();
+			//			superOfflineStorage.userRootDirectory = MainVO.CachesRootPath + "tdt";
+			//			
+			//			var tdtLayer:TiledTDTLayer = new TiledTDTLayer();
+			//			tdtLayer.projection = "10010";
+			//			tdtLayer.offlineStorage = superOfflineStorage;
+			//			map.addLayer(tdtLayer);
+			//			
+			//			var superLabelOfflineStorage:OfflineStorage = new OfflineStorage();
+			//			superLabelOfflineStorage.userRootDirectory = MainVO.CachesRootPath + "tdtLabel";
+			//			
+			//			var tdtLabelLayer:TiledTDTLayer = new TiledTDTLayer();
+			//			tdtLabelLayer.projection = "10010";
+			//			tdtLabelLayer.offlineStorage = superLabelOfflineStorage;
+			//			tdtLabelLayer.isLabel = true;
+			//			map.addLayer(tdtLabelLayer);
 			
-			var tdtLayer:TiledTDTLayer = new TiledTDTLayer();
-			tdtLayer.projection = "10010";
-			tdtLayer.offlineStorage = superOfflineStorage;
-			map.addLayer(tdtLayer);
-			
-			var superLabelOfflineStorage:OfflineStorage = new OfflineStorage();
-			superLabelOfflineStorage.userRootDirectory = MainVO.CachesRootPath + "tdtLabel";
-			
-			var tdtLabelLayer:TiledTDTLayer = new TiledTDTLayer();
-			tdtLabelLayer.projection = "10010";
-			tdtLabelLayer.offlineStorage = superLabelOfflineStorage;
-			tdtLabelLayer.isLabel = true;
-			map.addLayer(tdtLabelLayer);
-			
-			this.vectorBaseLayer = tdtLayer;
-			this.vectorLabelBaseLayer = tdtLabelLayer;
+			var tdtLayerUrl:String = getSystemConfigMbtilesPath() +"tdt.mbtiles";
+			var file:File = File.applicationDirectory.resolvePath(tdtLayerUrl);
+			if (file.exists && file.isDirectory == false){
+				var tdtLayer:MBTilesLayerEx = new MBTilesLayerEx();
+				tdtLayer.mbtilesPath = tdtLayerUrl;
+				map.addLayer(tdtLayer);
+				this.vectorBaseLayer = tdtLayer;
+			}			
+			tdtLayerUrl = getSystemConfigMbtilesPath() +"tdtlb.mbtiles";
+			file = File.applicationDirectory.resolvePath(tdtLayerUrl);
+			if (file.exists && file.isDirectory == false){
+				var tdtLabelLayer:MBTilesLayerEx = new MBTilesLayerEx();
+				tdtLabelLayer.mbtilesPath = tdtLayerUrl;
+				map.addLayer(tdtLabelLayer);
+				this.vectorLabelBaseLayer = tdtLabelLayer;
+			}
 		}
 		
 		/**视图切换特效*/

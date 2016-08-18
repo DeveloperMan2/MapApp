@@ -68,10 +68,10 @@ package  com.mapping
 		
 		override protected function getLocalTile(row:int, col:int, level:int) : ByteArray
 		{
-			if (this._mbtilesPath != "" && this._mbtilesHelper != null &&  this._mbtilesHelper.opened && map.level <0)
-			{
-				return null;
-			}
+//			if (this._mbtilesPath != "" && this._mbtilesHelper != null &&  this._mbtilesHelper.opened && map.level <0)
+//			{
+//				return null;
+//			}
 			row = Math.pow(2, level) - row - 1;
 			var byteArray:ByteArray = this._mbtilesHelper.getTile(row, col, level);
 			return byteArray;

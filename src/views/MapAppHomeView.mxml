@@ -1,13 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		xmlns:s="library://ns.adobe.com/flex/spark" 
+		xmlns:ns1="http://flex.apache.org/experimental/ns"
 		xmlns:supermap="http://www.supermap.com/mobile/2010"
 		actionBarVisible="true"
 		creationComplete="creationCompleteHandler(event)"
-		resize="resizeHandler(event)">
+		resize="resizeHandler(event)" xmlns:ns="http://flex.apache.org/experimental/ns">
 	<fx:Script>
 		<![CDATA[
 			import com.component.popup.MapDirContainer;
+			import com.supermap.web.core.Point2D;
 			import com.util.AppEvent;
 			import com.util.QueryUtil;
 			import com.util.SystemConfigUtil;
@@ -19,6 +21,7 @@
 			import mx.utils.StringUtil;
 			
 			import spark.components.SkinnablePopUpContainer;
+			import spark.events.DropDownEvent;
 			import spark.events.IndexChangeEvent;
 			
 			private const QUERYSTATE:String = "QueryState";
@@ -35,15 +38,36 @@
 			protected function creationCompleteHandler(event:FlexEvent):void
 			{
 				AppEvent.addListener(AppEvent.MBTILES_PATH_CHANGE, mbtilesPathChangeHandler);
+				
+				//初始化系统运行参数
+				dm.initAppParam(FlexGlobals.topLevelApplication.runtimeDPI);
+				
+				//添加图标集装箱
+				dm.loadIconAssembly(FlexGlobals.topLevelApplication.runtimeDPI);
+				
+				//初始化系统目录
+				var initDirectory:SystemInit = new SystemInit();
+				initDirectory.initSystemDirectory(true);
+				
 				dm.initMap(this.map);
-				dm.initMarkLayer();
 				dm.addTdtLayer();
+				
+				dm.initMarkSymbol();
+				setMarkSymbolInputControl();
 				
 				//初始化查询对象
 				queryUtil = dm.getQueryUtil();
 				
 				//初始化获取列表
-				searchBtn_clickHandler();
+				this.loadDefaultParam(true);
+			}
+			
+			private function setMarkSymbolInputControl():void
+			{
+				mark1SizeTp.text = dm.mark1Size.toString();
+				mark1ColorCp.selectedColor = dm.mark1Color;
+				mark2SizeTp.text = dm.mark2Size.toString();
+				mark2ColorCp.selectedColor = dm.mark2Color;
 			}
 			
 			//修改mbtiles文件夹，重新获取查询对象
@@ -64,10 +88,7 @@
 				if (mbLayerNameList.selectedItem != null){
 					dm.addMbLayer(mbLayerNameList.selectedItem);
 				} else {
-					if (dm.imageBaseLayer && map && map.getLayer(dm.imageBaseLayer.id) != null) {
-						map.removeLayer(dm.imageBaseLayer);
-						dm.imageBaseLayer = null;
-					}
+					dm.removeMbLayer();
 				}
 			}
 			
@@ -108,22 +129,12 @@
 			
 			protected function searchBtn_clickHandler():void
 			{
-				var keyWord:String = dataKeyWord.text;
-				keyWord = StringUtil.trim(keyWord);
-				var level:int = -1;
-				var cityCode:String = "";
-				var countryCode:String = "";
-				
-				if (mapLevelId != null && mapLevelId.selectedIndex > 0) {
-					level = mapLevelId.selectedItem.value;
-				}
-				
-				if (cityId != null && cityId.selectedIndex > 0) {
-					cityCode = cityId.selectedItem.NODE_ID;
-					if (countyId.selectedIndex > 0) {
-						countryCode = countyId.selectedItem.NODE_ID;
-					}
-				}
+				this.loadDefaultParam(false);
+			}
+			
+			//查询离线影像信息
+			private function queryMbInfos(keyWord:String, cityCode:String, countryCode:String, level:int):void
+			{
 				var resultList:Array = queryUtil.queryByName(keyWord, cityCode, countryCode, level);
 				mbLayerNameList.dataProvider = new ArrayCollection(resultList);
 				queryResultInfoLb.text = "共" + resultList.length +"条记录";
@@ -192,7 +203,7 @@
 			
 			protected function ImageAlpha_clickHandler(event:MouseEvent):void
 			{
-				imageAlphaSlider.visible = !imageAlphaSlider.visible;
+				configContent.visible = !configContent.visible;
 			}
 			
 			protected function imageAlphaSlider_changeHandler(event:Event):void
@@ -224,41 +235,200 @@
 				{name:"第17级", value:17}
 			]);
 			
-			protected function cityId_changeHandler(event:IndexChangeEvent):void
+			protected function mapLevelListId_creationCompleteHandler(event:FlexEvent):void
 			{
-				if (cityId.dataProvider != null && cityId.selectedIndex > 0 ) {
-					countyId.dataProvider = systemConfigUtil.queryCountryList(cityId.selectedItem.NODE_ID);
-					countyId.selectedIndex = 0;
-				} else {
-					countyId.dataProvider = null;
+				// TODO Auto-generated method stub
+				if(this.mapLevelId.text != "----")
+				{
+					var items:ArrayCollection = this.mapLevelListId.dataProvider as ArrayCollection;
+					for each(var item:Object in items)
+					{
+						if(item["name"] == this.mapLevelId.text)
+						{
+							this.mapLevelListId.selectedItem = item;
+							break;
+						}
+					}
 				}
-				countyId_valueCommitHandler();
 			}
 			
-			protected function cityId_creationCompleteHandler(event:FlexEvent):void
+			protected function cityListId_creationCompleteHandler(event:FlexEvent):void
 			{
+				// TODO Auto-generated method stub
 				//初始化行政区划查询数据
 				systemConfigUtil = dm.getSystemConfigUtil();
-				cityId.dataProvider = systemConfigUtil.queryCityList();
-				cityId.selectedIndex = 0;				
-			}
-			
-			protected function countyId_valueCommitHandler():void
-			{
-				if (cityId.dataProvider != null ) {
-					searchBtn_clickHandler();
+				cityListId.dataProvider = systemConfigUtil.queryCityList();
+				cityListId.selectedIndex = 0;	
+				if(this.cityId.text != "----")
+				{
+					var items:ArrayCollection = this.cityListId.dataProvider as ArrayCollection;
+					for each(var item:Object in items)
+					{
+						if(item["NODE_NAME"] == this.cityId.text)
+						{
+							this.cityListId.selectedItem = item;
+							break;
+						}
+					}
 				}
 			}
 			
-			protected function mapLevelId_changeHandler(event:IndexChangeEvent):void
+			protected function mapLevelListId_changeHandler(event:IndexChangeEvent):void
 			{
-				countyId_valueCommitHandler();
+				// TODO Auto-generated method stub
+				this.mapLevelId.text = this.mapLevelListId.selectedItem["name"];
 			}
 			
-			//显示桩号注记
-			private function markMapBtn_clickHandler(event:MouseEvent):void
+			protected function cityListId_changeHandler(event:IndexChangeEvent):void
 			{
+				// TODO Auto-generated method stub
+				this.cityId.text = this.cityListId.selectedItem["NODE_NAME"];
+			}
+			
+			//保存为默认查询参数
+			private function saveDefaultParam():void
+			{
+				systemConfigUtil = dm.getSystemConfigUtil();
+				var keyWord:String = StringUtil.trim(this.dataKeyWord.text.toString());
+				var level:String = this.mapLevelId.text;
+				var levelValue:int=-1;
+				if(level != "----")
+				{
+					levelValue = parseInt(this.mapLevelListId.selectedItem["value"]);
+				}
+				//				map.addEventListener(MouseEvent.CLICK, clickHandler);
+				var bt:Button = event.currentTarget as Button;
+				if (bt == mark1MapBtn) {
+					dm.mark1Layer.visible = !dm.mark1Layer.visible;
+				} else {
+					dm.mark2Layer.visible = !dm.mark2Layer.visible;
+				}
 				
+				var city:String = this.cityId.text;
+				var cityValue:String = "";
+				if(city != "----")
+				{
+					cityValue = this.cityListId.selectedItem["NODE_ID"];
+				}
+				var param:String = keyWord + "," + level + "#" + levelValue + "," + city + "#" + cityValue;
+				systemConfigUtil.updateDefaultParam(param);
+				//				var left:Number = Coordinate.Mercator2Lon(12633199.708030969);
+				//				var top:Number = Coordinate.Mercator2Lat(3492718.725923287);
+				//				var right:Number = Coordinate.Mercator2Lon(13139518.583301282);
+				//				var bottom:Number = Coordinate.Mercator2Lat(2866546.590323287);
+			}
+			
+			//加载默认查询参数
+			private function loadDefaultParam(isInit:Boolean=true):void
+			{
+				var keyWord:String = "";
+				var level:String = "";
+				var levelValue:int=-1;
+				var city:String = "";
+				var cityValue:String = "";
+				if(isInit)
+				{
+					systemConfigUtil = dm.getSystemConfigUtil();
+					var param:String = systemConfigUtil.loadDefaultParam();
+					var params:Array = param.split(",");
+					if(params != null && params.length > 0)
+					{
+						keyWord = params[0];
+						
+						var levels:Array = String(params[1]).split("#");
+						level = levels[0];
+						levelValue = levels[1];
+						
+						var citys:Array = String(params[2]).split("#");
+						city = citys[0];
+						cityValue = citys[1];
+						
+						this.dataKeyWord.text = keyWord;
+						this.mapLevelId.text = level;
+						this.cityId.text = city;
+					}
+				}
+				else
+				{
+					keyWord = StringUtil.trim(dataKeyWord.text.toString());
+					
+					if (mapLevelListId != null && mapLevelListId.selectedIndex > 0) {
+						levelValue = mapLevelListId.selectedItem.value;
+					}
+					
+					if (cityListId != null && cityListId.selectedIndex > 0) {
+						cityValue = cityListId.selectedItem.NODE_ID;
+					}
+				}
+				
+				this.queryMbInfos(keyWord, cityValue, "", levelValue);
+			}
+			
+			//保存为默认
+			protected function saveAsDefault_clickHandler(event:MouseEvent):void
+			{
+				this.saveDefaultParam();
+			}
+			
+			protected function mapLevelCalloutBtnID_openHandler(event:DropDownEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(this.mapLevelId.text != "----")
+				{
+					var items:ArrayCollection = this.mapLevelListId.dataProvider as ArrayCollection;
+					for each(var item:Object in items)
+					{
+						if(item["name"] == this.mapLevelId.text)
+						{
+							this.mapLevelListId.selectedItem = item;
+							break;
+						}
+					}
+				}
+			}
+			
+			protected function cityCalloutBtnID_openHandler(event:DropDownEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(this.cityId.text != "----")
+				{
+					var items:ArrayCollection = this.cityListId.dataProvider as ArrayCollection;
+					for each(var item:Object in items)
+					{
+						if(item["NODE_NAME"] == this.cityId.text)
+						{
+							this.cityListId.selectedItem = item;
+							break;
+						}
+					}
+				}
+			}
+			private var stationStr:String="";
+			private var startText:int = 100;
+			
+			private function clickHandler(event:MouseEvent):void
+			{
+				var stagePoint:Point = new Point(event.stageX, event.stageY);
+				var mapPoint:Point2D = map.stageToMap(stagePoint);
+				var lgt:Number =mapPoint.x;
+				var lat:Number = mapPoint.y;
+				startText += 100;
+				stationStr += lgt +"," + lat +";";//+ "," + "0+" +startText +";";
+			}
+			
+			protected function mark2SizeTp_textInputHandler():void
+			{
+				dm.mark1Size = parseInt(mark1SizeTp.text);
+				dm.mark1Color = mark1ColorCp.selectedColor;
+				dm.mark2Size = parseInt(mark2SizeTp.text);
+				dm.mark2Color = mark2ColorCp.selectedColor;
+				dm.updateMarkSymbol();
+			}
+			
+			protected function mark1SizeTp_focusInHandler(event:FocusEvent):void
+			{
+				var textInput:TextInput = event.currentTarget as TextInput;
+				textInput.selectRange(textInput.text.length, textInput.text.length);
 			}
 			
 		]]>
@@ -296,42 +466,61 @@
 				<s:TextInput id="dataKeyWord" prompt="输入查询关键字" width="100%" contentBackgroundAlpha="0"/>
 			</s:HGroup>
 			<s:HGroup width="100%" gap="{5*dm.multiResolution}" horizontalAlign="left" verticalAlign="middle">
-				<s:CalloutButton id="conditionSetting" label="高级查询设置>>" 
-								 iconPlacement="right" 
-								 horizontalPosition="auto"
-								 verticalPosition="auto"
-								 skinClass="com.skin.PopupButtonSkin">
+				<s:TextInput id="mapLevelId" prompt="请选择级别" 
+							 text="----"
+							 width="100%" contentBackgroundAlpha="0" 
+							 editable="false" selectable="false" 
+							 mouseChildren="false" mouseEnabled="false"/>
+				<s:CalloutButton id="mapLevelCalloutBtnID"
+								 label="级    别>>"
+								 iconPlacement="left"
+								 skinClass="com.skin.QueryButtonSkin"
+								 open="mapLevelCalloutBtnID_openHandler(event)">
 					<s:calloutContent>
-						<s:HGroup width="100%" height="100%">
-							<s:VGroup>
-								<s:Label text="地图级别" verticalAlign="middle" fontWeight="bold" textAlign="center"
-										 height="{48*dm.multiResolution}" width="{144*dm.multiResolution}"/>
-								<s:SpinnerListContainer width="100%" horizontalCenter="0" top="20" bottom="20">
-									<s:SpinnerList id="mapLevelId" height="100%" width="100%" 
-												   selectedIndex="0" 
-												   typicalItem="999" dataProvider="{mapLevelCol}" labelField="name"
-												   change="mapLevelId_changeHandler(event)">
-									</s:SpinnerList>
-								</s:SpinnerListContainer>
-							</s:VGroup>
-							<s:VGroup>
-								<s:Label text="查询区域" verticalAlign="middle" fontWeight="bold" textAlign="center"
-										 height="{48*dm.multiResolution}" width="{256*dm.multiResolution}"/>
-								<s:SpinnerListContainer width="100%" horizontalCenter="0" top="20" bottom="20">
-									<s:SpinnerList id="cityId" height="100%" width="100%" typicalItem="999"
-												   labelField="NODE_NAME"
-												   selectedIndex="0" change="cityId_changeHandler(event)" 
-												   creationComplete="cityId_creationCompleteHandler(event)">
-									</s:SpinnerList>
-									<s:SpinnerList id="countyId" height="100%" width="100%" typicalItem="999"
-												   labelField="NODE_NAME"
-												   selectedIndex="0" valueCommit="countyId_valueCommitHandler()">
-									</s:SpinnerList>
-								</s:SpinnerListContainer>
-							</s:VGroup>
-						</s:HGroup>
+						<s:List id="mapLevelListId" width="{260*dm.multiResolution}"
+								height="100%"
+								textAlign="center" 
+								requireSelection="true"
+								selectedIndex="0"
+								bottom="6" left="6" right="6" top="6"
+								dataProvider="{mapLevelCol}" labelField="name"
+								creationComplete="mapLevelListId_creationCompleteHandler(event)"
+								change="mapLevelListId_changeHandler(event)">
+						</s:List>
 					</s:calloutContent>
 				</s:CalloutButton>
+			</s:HGroup>
+			<s:HGroup width="100%" gap="{5*dm.multiResolution}" horizontalAlign="left" verticalAlign="middle">
+				<s:TextInput id="cityId" prompt="请选择行政区划" 
+							 text="----"
+							 width="100%" contentBackgroundAlpha="0" 
+							 editable="false" selectable="false" 
+							 mouseChildren="false" mouseEnabled="false"/>
+				<s:CalloutButton id="cityCalloutBtnID"
+								 label="行政区>>"
+								 iconPlacement="left"
+								 skinClass="com.skin.QueryButtonSkin"
+								 open="cityCalloutBtnID_openHandler(event)">
+					<s:calloutContent>
+						<s:List id="cityListId" width="{260*dm.multiResolution}"
+								height="100%"
+								textAlign="center" 
+								requireSelection="true"
+								selectedIndex="0"
+								bottom="6" left="6" right="6" top="6"
+								labelField="NODE_NAME"
+								creationComplete="cityListId_creationCompleteHandler(event)"
+								change="cityListId_changeHandler(event)">
+						</s:List>
+					</s:calloutContent>
+				</s:CalloutButton>
+			</s:HGroup>
+			<s:HGroup width="100%" gap="{5*dm.multiResolution}" horizontalAlign="left" verticalAlign="middle">
+				<s:Button id="saveAsDefault"
+						  label="保存为默认"
+						  iconPlacement="left"
+						  skinClass="com.skin.PopupButtonSkin"
+						  click="saveAsDefault_clickHandler(event)"/>
 				<s:Spacer width="100%"/>
 				<s:Button id="searchBtn"
 						  label="查询"
@@ -366,19 +555,39 @@
 				  icon="{dm.iconAssembly.zoomInIcon}" styleName="OperationButton" click="zoomInBtn_clickHandler(event)"/>
 		<s:Button id="zoomOutBtn" 
 				  icon="{dm.iconAssembly.zoomOutIcon}" styleName="OperationButton" click="zoomOutBtn_clickHandler(event)"/>
-		<s:Button id="markMapBtn" 
-				  icon="{dm.iconAssembly.trafficIcon}" styleName="OperationButton" click="markMapBtn_clickHandler(event)"/>	
+		<s:Button id="mark1MapBtn" 
+				  icon="{dm.iconAssembly.trafficIcon}" styleName="OperationButton" click="markMapBtn_clickHandler(event)"/>
+		<s:Button id="mark2MapBtn" 
+				  icon="{dm.iconAssembly.markerIcon}" styleName="OperationButton" click="markMapBtn_clickHandler(event)"/>
 		<s:VGroup horizontalAlign="right">
-			<s:Button id="ImageAlpha" 
-					  icon="{dm.iconAssembly.userIcon}" styleName="OperationButton" click="ImageAlpha_clickHandler(event)"/>
-			<s:HSlider id="imageAlphaSlider" visible="false" includeInLayout="{imageAlphaSlider.visible}" 
-					   minimum="0" maximum="1"  value="1"  stepSize="0.1" width="{200*dm.multiResolution}"  
-					   height="{48*dm.multiResolution}"
-					   change="imageAlphaSlider_changeHandler(event)"/>
+			<s:Button id="ImageAlpha" icon="{dm.iconAssembly.userIcon}" styleName="OperationButton" click="ImageAlpha_clickHandler(event)"/>
+			<s:Group id="configContent"  width="{200*dm.multiResolution}" visible="false" includeInLayout="{imageAlphaSlider.visible}" >
+				<s:Rect id="fill" left="0" right="0" top="0" bottom="0" radiusX="0" radiusY="0">
+					<s:fill>
+						<s:SolidColor alpha="0.8" color="0xFFFFFF" />
+					</s:fill>
+				</s:Rect>
+				<s:VGroup width="100%">
+						<s:HSlider id="imageAlphaSlider" minimum="0" maximum="1"  value="1"  stepSize="0.1" width="100%"
+								   change="imageAlphaSlider_changeHandler(event)"/>
+					<s:Label text="注记1" backgroundAlpha="0" verticalAlign="middle"/>
+					<s:HGroup width="100%" verticalAlign="middle">
+						<s:Label text="字号" verticalAlign="middle" height="100%" backgroundAlpha="0"/>
+						<s:TextInput id="mark1SizeTp" width="{60*dm.multiResolution}"  textAlign="center"  restrict="0-9"
+									 contentBackgroundAlpha="0"  change="mark2SizeTp_textInputHandler()" focusIn="mark1SizeTp_focusInHandler(event)"/>
+						<ns:ColorPicker id="mark1ColorCp"  close="mark2SizeTp_textInputHandler()" width="{30*dm.multiResolution}"
+										height="{30*dm.multiResolution}"/>
+					</s:HGroup>
+					<s:Label text="注记2" backgroundAlpha="0" verticalAlign="middle"/>
+					<s:HGroup width="100%" verticalAlign="middle">
+						<s:Label text="字号" verticalAlign="middle" height="100%" backgroundAlpha="0"/>
+						<s:TextInput id="mark2SizeTp" width="{60*dm.multiResolution}" textAlign="center"    restrict="0-9"
+									 contentBackgroundAlpha="0" change="mark2SizeTp_textInputHandler()"/>
+						<ns:ColorPicker id="mark2ColorCp" close="mark2SizeTp_textInputHandler()" width="{30*dm.multiResolution}"
+										height="{30*dm.multiResolution}"/>
+					</s:HGroup>
+				</s:VGroup>
+			</s:Group>
 		</s:VGroup>
 	</s:VGroup>
-	<!--<s:HSlider id="imageAlphaSlider" bottom="12" right="12"
-	minimum="0" maximum="1"  value="1"  stepSize="0.1" 
-	width="{200*dm.multiResolution}"  height="{48*dm.multiResolution}"
-	change="imageAlphaSlider_changeHandler(event)"/>-->
 </s:View>

@@ -265,7 +265,6 @@ package com.mapping
 			catch (error:SQLError)
 			{
 				_status = "查询出错" + error.details;
-				trace(_status);
 			}
 			return null;
 		}// end function

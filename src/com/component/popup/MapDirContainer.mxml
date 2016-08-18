@@ -11,7 +11,6 @@
 			
 			import flash.utils.setTimeout;
 			
-			import mx.collections.ArrayCollection;
 			import mx.events.FlexEvent;
 			import mx.events.ResizeEvent;
 			
@@ -37,8 +36,10 @@
 						this.closeDirInfo([dm.customMbTilesDir]);
 					}
 					dm.customMbTilesDir = f;
-					f.getDirectoryListingAsync();
-					f.addEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
+					//					f.getDirectoryListingAsync();
+					//					f.getDirectoryListing();
+					//					f.addEventListener(FileListEvent.DIRECTORY_LISTING, dirListHandler); 
+					dirListHandler(f);
 				}
 			}
 			
@@ -58,38 +59,35 @@
 			}
 			
 			/**设置本地图片数据源-PhotoView, PhotoGroupView*/
-			public function dirGenerator(tileGroup:TileGroup, dirCol:ArrayCollection, fn:Function=null):void
+			public function dirGenerator(tileGroup:TileGroup, dirCol:Array, fn:Function=null):void
 			{
 				tileGroup.removeAllElements();
-				if(dirCol != null && dirCol.length > 0)
+				for each (var f:File in dirCol) 
 				{
-					for each (var f:File in dirCol) 
+					var temp:Array = f.nativePath.split(File.separator);
+					var dirName:String = temp[temp.length-1];
+					if(f.isDirectory)
 					{
-						var temp:Array = f.nativePath.split("/");
-						var dirName:String = temp[temp.length-1];
-						if(f.isDirectory)
+						var dirGroup:ImageButton = new ImageButton();
+						dirGroup.url = dm.iconAssembly.dirIcon;
+						dirGroup.text = dirName;
+						dirGroup.width = dirItemWidth;
+						dirGroup.height = dirItemHeight;
+						dirGroup.param = f;
+						if(fn != null)
 						{
-							var dirGroup:ImageButton = new ImageButton();
-							dirGroup.url = dm.iconAssembly.dirIcon;
-							dirGroup.text = dirName;
-							dirGroup.width = dirItemWidth;
-							dirGroup.height = dirItemHeight;
-							dirGroup.param = f;
-							if(fn != null)
-							{
-								dirGroup.addEventListener(MouseEvent.CLICK, fn);
-							}
-							tileGroup.addElement(dirGroup);
+							dirGroup.addEventListener(MouseEvent.CLICK, fn);
 						}
-						else
-						{
-							var fileItem:ImageButton = new ImageButton();
-							fileItem.url = dm.iconAssembly.fileIcon;
-							fileItem.text = dirName;
-							fileItem.width = dirItemWidth;
-							fileItem.height = dirItemHeight;
-							tileGroup.addElement(fileItem);
-						}
+						tileGroup.addElement(dirGroup);
+					}
+					else
+					{
+						var fileItem:ImageButton = new ImageButton();
+						fileItem.url = dm.iconAssembly.fileIcon;
+						fileItem.text = dirName;
+						fileItem.width = dirItemWidth;
+						fileItem.height = dirItemHeight;
+						tileGroup.addElement(fileItem);
 					}
 				}
 			}
@@ -98,11 +96,16 @@
 			{
 				var systemConfigPath:String = dm.getSystemConfigMbtilesPath();
 				currentDirPath.text = systemConfigPath;
-				if(Capabilities.os.indexOf("Linux") > -1)
-				{
+//				if(Capabilities.os.indexOf("Linux") > -1)
+//				{
 					var systemConfigFile:File = File.documentsDirectory.resolvePath(systemConfigPath)
 					this.getDirInfo(systemConfigFile);
-				}
+//				}
+				
+				var fs:Array = File.getRootDirectories();
+				trace(fs.length);
+				var subfs:Array = (fs[0] as File).getDirectoryListing();
+				trace(subfs.length);
 			}
 			
 			//选择目录
@@ -110,6 +113,7 @@
 				var f:File = e.target as File;  
 				dm.customMbTilesDir = f;
 				currentDirPath.text = f.nativePath;
+				dirListHandler(f);
 			}  
 			
 			/**点击文件夹图标*/
@@ -123,10 +127,12 @@
 				}
 			}
 			
-			private function dirListHandler(event:FileListEvent):void 
+			private function dirListHandler(f:File):void 
 			{ 
-				var rootDir:Array = event.files; 
-				this.dirGenerator(dirGroup, new ArrayCollection(rootDir), dirGroupClickHandler);
+				//				var rootDir:Array = event.files; 
+				var rootDir:Array = 	f.getDirectoryListing();
+				tipLb.text = rootDir.length.toString();
+				this.dirGenerator(dirGroup, rootDir, dirGroupClickHandler);
 				
 				this.closeDirInfo([dm.customMbTilesDir]);
 				
@@ -236,11 +242,19 @@
 	</s:states>
 	<s:VGroup width="100%" height="100%" verticalAlign="top" horizontalAlign="center"
 			  paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5">
-		<s:HGroup width="100%" height="{48*dm.multiResolution}" gap="0">
+		<s:HGroup width="100%" height="{48*dm.multiResolution}" gap="5">
+			<s:Label text="文件数为:" height="100%" verticalAlign="middle"/>
+			<s:Label id="tipLb" height="100%" verticalAlign="middle"/>
+			<s:Spacer width="{20*dm.multiResolution}"/>
 			<s:Label text="当前目录：" height="100%" verticalAlign="middle"/>
 			<s:Label id="currentDirPath" text="请选择离线地图存放目录" 
 					 verticalAlign="middle" 
 					 width="100%" height="100%" creationComplete="currentDirPath_creationCompleteHandler(event)"/>
+			<s:Button id="resetBtn" label="根目录"  
+					  icon="{dm.iconAssembly.homeIcon}" 
+					  iconPlacement="left" 
+					  width="{132*dm.multiResolution}" height="100%"
+					  click="resetBtn_clickHandler(event)"/>
 			<s:Button id="confirmBtn" label="确定目录" width="{124*dm.multiResolution}" height="100%"
 					  click="confirmBtn_clickHandler(event)"/>
 		</s:HGroup>
@@ -253,11 +267,6 @@
 				  verticalAlign="middle" includeIn="SubState" itemCreationPolicy="immediate">
 			<s:Label id="toolTipLb" height="100%" visible="false" includeInLayout="{toolTipLb.visible}"/>
 			<s:Spacer width="100%"/>
-			<s:Button id="resetBtn" label="根目录"  
-					  icon="{dm.iconAssembly.homeIcon}" 
-					  iconPlacement="left" 
-					  width="{132*dm.multiResolution}" height="100%"
-					  click="resetBtn_clickHandler(event)"/>
 			<s:Button id="returnLastDir" label="上一级" 
 					  icon="{dm.iconAssembly.backdisIcon}" 
 					  iconPlacement="left" 

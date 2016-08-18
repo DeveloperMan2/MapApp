@@ -8,7 +8,16 @@
 
 @font-face {
 	src:url("../font/yh.ttf");
-	fontFamily: "嵌入字体";
+	fontFamily: "embedF";
+	fontStyle: normal;
+	fontWeight: normal;
+	advancedAntiAliasing: true;
+	embed-as-cff:false;
+}
+
+@font-face {
+	src:url("../font/yh.ttf");
+	fontFamily: "embedT";
 	fontStyle: normal;
 	fontWeight: normal;
 	advancedAntiAliasing: true;
@@ -17,9 +26,18 @@
 
 global
 {
-	fontFamily:"嵌入字体";
+	fontFamily:"embedT,embedF";
 	content-background-alpha: 0;
 	backgroundColor:#FFFFFF;
+}
+s|Label
+{
+	fontFamily:"embedT";
+}
+
+s|TextInput
+{
+	fontFamily:"embedF";
 }
 
 ns|Map
@@ -51,6 +69,7 @@ s|Button
 s|List
 {
     contentBackgroundColor:#FFFFFF;
+	color:#000000;
 }
 
 .OperationButton
